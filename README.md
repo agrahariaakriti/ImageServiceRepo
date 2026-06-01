@@ -1,43 +1,49 @@
 # 🖼️ Image Processing Service
 
-> A production-grade backend for uploading, transforming, and retrieving images — built like a lightweight Cloudinary clone.
+A scalable backend system for uploading, transforming, and retrieving images — built as a lightweight Cloudinary-style service.
 
 ---
 
 ## 📌 Overview
 
-This is a full-featured **Image Processing Service** built with **Node.js**, **Express**, **Python (FastAPI)**, **MongoDB**, **Cloudinary**, and **Redis (Upstash)**. It allows users to securely authenticate, upload images, apply real-time transformations (resize, crop, grayscale, and more), and retrieve images via short, shareable codes.
+This project is a full-stack image processing backend built using:
 
-Inspired by the [roadmap.sh Image Processing Service](https://roadmap.sh) project.
+- Node.js + Express (core backend)
+- Python FastAPI (image processing microservice)
+- MongoDB (data storage)
+- Cloudinary (image hosting)
+- Redis (caching + rate limiting)
+
+It supports authentication, image upload, real-time transformations, and fast image retrieval via short codes.
 
 ---
 
 ## ✨ Features
 
-### 🔐 User Authentication
-- User **Sign Up** with validation (email, username, strong password)
-- User **Sign In** with hashed password comparison (bcrypt)
-- **JWT-based** access token + refresh token strategy
-- Secure **logout** (clears refresh token from DB)
-- **Token refresh** endpoint via HTTP-only cookie
+### 🔐 Authentication
+- User signup & login
+- JWT access + refresh token system
+- Secure logout
+- HTTP-only cookie based auth
 
 ### 🖼️ Image Management
-- Upload images (PNG, JPEG, WEBP, JPG supported)
-- Images stored securely on **Cloudinary**
-- Each image assigned a unique **8-character nanoid code**
-- Retrieve image via short shareable URL (`/fetch/:imageCode`)
-- List all images uploaded by the authenticated user
+- Upload images (JPG, PNG, WEBP)
+- Cloudinary storage
+- Unique image ID generation (nanoid)
+- Fetch images via `/fetch/:imageCode`
+- Get all user images
 
-### 🔄 Image Transformations (via Python FastAPI microservice)
-- **Resize** — custom width & height
-- **Crop** — left, right, top, bottom pixel crop
-- **Grayscale / Color Mode** — convert to L, RGB, RGBA, etc.
-- Transformed image is re-uploaded to Cloudinary and a new code is generated
+### 🔄 Image Processing
+Handled by Python FastAPI + Pillow:
+- Resize images
+- Crop images
+- Grayscale / color mode conversion
+- Processed images re-uploaded to Cloudinary
 
-### ⚡ Performance & Reliability
-- **Redis caching** (Upstash) for fast image retrieval
-- **Rate limiting** — max 100 requests per IP per 60 seconds
-- Multer-based **file upload** with temp disk storage
+### ⚡ Performance
+- Redis caching (faster image fetch)
+- Rate limiting (100 requests/min per IP)
+- Optimized API response flow
 
 ---
 
@@ -46,24 +52,24 @@ Inspired by the [roadmap.sh Image Processing Service](https://roadmap.sh) projec
 ```
 Client
   │
-  ├── POST /api/v1/users/signup        → Register
-  ├── POST /api/v1/users/signin        → Login
-  ├── POST /api/v1/users/logout        → Logout
-  ├── GET  /api/v1/users/refresh       → Refresh Access Token
-  │
-  ├── POST /api/v1/image/imageupload   → Upload Image (Auth + Multer)
-  ├── GET  /api/v1/image/getallimg     → Get All Images (Auth)
-  ├── GET  /api/v1/image/transformimage/:code → Get Transform Info
-  ├── POST /api/v1/image/transformimage/:code → Apply Transformations
-  │
-  └── GET  /fetch/:imageCode           → Redirect to Original Image URL
-                                            (Redis cache → MongoDB)
-                                            
-Node.js Backend ──→ Python FastAPI (image transform microservice)
-                          │
-                    Pillow (PIL) processing
-                          │
-                    Cloudinary (re-upload)
+  ├── Auth APIs (signup / signin / logout / refresh)
+  ├── Image APIs (upload / list / transform)
+  └── Fetch API (/fetch/:imageCode)
+          │
+          ▼
+Node.js Backend (Express)
+          │
+          ├── MongoDB (metadata storage)
+          ├── Redis (cache + rate limit)
+          └── Cloudinary (image storage)
+                     │
+                     ▼
+        Python FastAPI Microservice
+                     │
+               Pillow (image processing)
+                     │
+                     ▼
+               Cloudinary (re-upload)
 ```
 
 ---
@@ -71,90 +77,55 @@ Node.js Backend ──→ Python FastAPI (image transform microservice)
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|---|---|
-| Runtime | Node.js (ESM) |
-| Web Framework | Express.js |
-| Auth | JWT (Access + Refresh Tokens) |
-| Password Hashing | bcrypt |
-| File Upload | Multer (disk storage) |
+|------|------------|
+| Backend | Node.js, Express |
+| Microservice | Python, FastAPI |
+| Database | MongoDB |
+| Cache | Redis (Upstash) |
 | Image Storage | Cloudinary |
-| Database | MongoDB + Mongoose |
-| Caching | Redis via Upstash |
-| Rate Limiting | Custom Redis middleware |
-| Image Processing | Python FastAPI + Pillow |
-| ID Generation | nanoid |
-| Env Config | dotenv |
+| Auth | JWT + bcrypt |
+| File Upload | Multer |
+| Processing | Pillow (PIL) |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-├── index.js                    # Entry point, DB connect + server start
-├── app.js                      # Express app setup, middleware, routes
-│
+Backend/
+├── index.js
+├── app.js
 └── src/
-    ├── Routes/
-    │   ├── user.route.js       # Auth routes
-    │   └── image.route.js      # Image routes
-    │
     ├── Controllers/
-    │   ├── user.controller.js  # Auth controller
-    │   └── image.controller.js # Image controller
-    │
     ├── Services/
-    │   ├── user.service.js     # Auth business logic
-    │   ├── image.service.js    # Image business logic
-    │   └── user.validate.service.js  # Validation helpers
-    │
     ├── Models/
-    │   ├── user.model.js
-    │   └── image.model.js
-    │
+    ├── Routes/
     ├── Middleware/
-    │   ├── auth.middleware.js  # JWT verification
-    │   └── multer.middleware.js
-    │
     ├── Util/
-    │   ├── cloudinary.config.js     # Cloudinary upload utils
-    │   └── python.service.config.js # Python microservice caller
-    │
     ├── redis.cache/
-    │   └── image.redis.cache.js     # Redis get/set for image cache
-    │
     ├── rate.limiter.service/
-    │   ├── rate.limiter.config.file.js  # Upstash Redis client
-    │   ├── user.rate.limiter.js         # IP-based rate limiter
-    │   └── image.rate.limiter.js        # Per-user image rate limiter
-    │
     └── python.service/
-        └── main.py             # FastAPI image transformation server
+
+Frontend/
+├── src/
+│   ├── Pages/
+│   ├── Components/
+│   └── Services/
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js v18+
-- Python 3.10+
-- MongoDB (local or Atlas)
-- Cloudinary account
-- Upstash Redis account
-
----
-
-### 1. Clone the Repository
-
+### 1. Clone Repo
 ```bash
-git clone https://github.com/your-username/image-processing-service.git
-cd image-processing-service
+git clone https://github.com/agrahariaakriti/ImageServiceRepo.git
+cd ImageServiceRepo
 ```
 
 ---
 
-### 2. Install Node Dependencies
+### 2. Install Dependencies
 
 ```bash
 npm install
@@ -162,7 +133,7 @@ npm install
 
 ---
 
-### 3. Install Python Dependencies
+### 3. Python Setup
 
 ```bash
 cd src/python.service
@@ -173,138 +144,92 @@ pip install fastapi pillow requests uvicorn streamifier
 
 ### 4. Environment Variables
 
-Create a `.env` file in the root:
-
 ```env
 PORT=5000
+MONGODB_URI=your_mongodb_url
 
-# MongoDB
-MONGODB_URI=your_mongodb_connection_string
+JWT_ACCESS_TOKEN_SECRET=secret
+JWT_REFRESH_TOKEN_SECRET=secret
 
-# JWT
-JWT_ACCESS_TOKEN_SECRET=your_access_secret
-JWT_ACCESS_TOKEN_EXPIRES_IN=15m
-JWT_REFRESH_TOKEN_SECRET=your_refresh_secret
-JWT_REFRESH_TOKEN_EXPIRES_IN=7d
+CLOUDINARY_CLOUD_NAME=xxx
+CLOUDINARY_API_KEY=xxx
+CLOUDINARY_API_SECRET=xxx
 
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_CLOUD_API_KEY=your_api_key
-CLOUDINARY_CLOUD_API_SECRET=your_api_secret
+REDIS_URL=xxx
+REDIS_TOKEN=xxx
 
-# Upstash Redis
-REDIS_URL=your_upstash_redis_url
-REDIS_TOKEN=your_upstash_redis_token
-
-# Image Base URL (your server URL)
 imageurl=http://localhost:5000/fetch
 ```
 
 ---
 
-### 5. Run the Python Microservice
+### 5. Run Services
 
 ```bash
+# Python microservice
 cd src/python.service
-python -m uvicorn main:app --reload
+uvicorn main:app --reload
 ```
-
-> Runs on `http://localhost:8000` by default.
-
----
-
-### 6. Run the Node Server
 
 ```bash
+# Node backend
 npm run dev
-# or
-node index.js
 ```
 
 ---
 
-## 📬 API Reference
+## 📬 API Endpoints
 
 ### Auth
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/users/signup` | ❌ | Register new user |
-| POST | `/api/v1/users/signin` | ❌ | Login, get tokens |
-| POST | `/api/v1/users/logout` | ✅ | Logout user |
-| GET | `/api/v1/users/refresh` | ❌ | Refresh access token |
+- POST `/api/v1/users/signup`
+- POST `/api/v1/users/signin`
+- POST `/api/v1/users/logout`
+- GET `/api/v1/users/refresh`
 
 ### Images
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/image/imageupload` | ✅ | Upload an image |
-| GET | `/api/v1/image/getallimg` | ✅ | List all user images |
-| GET | `/api/v1/image/transformimage/:imageCode` | ✅ | Get image info |
-| POST | `/api/v1/image/transformimage/:imageCode` | ✅ | Apply transformations |
-| GET | `/fetch/:imageCode` | ❌ | Redirect to original image |
+- POST `/api/v1/image/imageupload`
+- GET `/api/v1/image/getallimg`
+- POST `/api/v1/image/transformimage/:code`
+- GET `/fetch/:imageCode`
 
 ---
 
-### Transform Request Body Example
+## 🔒 Security
 
-```json
-{
-  "imageurl": "https://res.cloudinary.com/...",
-  "changingparameter": {
-    "resized": { "width": 300, "height": 300 },
-    "crop": { "left": 10, "top": 10, "right": 290, "bottom": 290 },
-    "grayscale": "L"
-  }
-}
-```
+- JWT authentication
+- Password hashing (bcrypt)
+- HTTP-only cookies
+- Rate limiting (Redis)
+- File validation before upload
 
 ---
 
-## 🔒 Security Highlights
+## 🧠 Key Learnings
 
-- Passwords hashed with **bcrypt** (salt rounds: 10)
-- Access tokens stored in **HTTP-only cookies** (not localStorage)
-- Refresh token stored in DB and validated on use
-- Rate limiting prevents brute-force and abuse (100 req/min per IP)
-- MIME type validation before any file processing
-
----
-
-## 🧠 What I Learned Building This
-
-- Designing a **microservice architecture** (Node + Python working together)
-- Implementing a **dual-token auth system** (access + refresh)
-- Using **Redis as a cache layer** to reduce database reads
-- Integrating **Cloudinary** for cloud image storage and retrieval
-- Building a real-time image processing pipeline using **Pillow (PIL)**
-- **Rate limiting** from scratch using Redis counters
+- Microservice architecture (Node + Python)
+- Image processing pipeline design
+- Redis caching strategies
+- Secure authentication system (JWT)
+- Cloud-based image storage (Cloudinary)
 
 ---
 
-## 🔮 Roadmap / Planned Features
+## 🔮 Future Improvements
 
-- [ ] Pagination for image listing (`?page=1&limit=10`)
-- [ ] Image rotation and flip support
-- [ ] Watermarking
-- [ ] Message queue (BullMQ / RabbitMQ) for async transformation jobs
-- [ ] Format conversion (PNG → JPEG, WEBP, etc.)
-- [ ] Sepia and custom filter support
-- [ ] Compression support
-- [ ] Admin dashboard
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
+- Pagination for images
+- Image compression
+- Watermark feature
+- Async processing queue (BullMQ)
+- Admin dashboard
 
 ---
 
 ## 📄 License
 
-[MIT](./LICENSE)
+MIT License
 
 ---
 
-<p align="center">Built with ❤️ | Inspired by <a href="https://roadmap.sh">roadmap.sh</a></p>
+<p align="center">
+Built with ❤️ using Node.js + Python
+</p>
