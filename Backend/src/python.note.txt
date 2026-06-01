@@ -1,0 +1,14 @@
+How to define the api in the python 
+
+1:- without paameter
+@app.get('/') route
+@app.post('/upload')
+@app.delete('/upload')
+
+2:- with parameter
+@app.get("/hello")
+def hello(name: str):
+    return {"message": f"Hello {name}"}
+
+
+
