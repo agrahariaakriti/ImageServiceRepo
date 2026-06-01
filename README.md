@@ -89,29 +89,46 @@ Node.js Backend (Express)
 
 ---
 
-## 📁 Project Structure
-
-```
-Backend/
-├── index.js
-├── app.js
+📁 Project Structure
+├── index.js                    # Entry point, DB connect + server start
+├── app.js                      # Express app setup, middleware, routes
+│
 └── src/
-    ├── Controllers/
-    ├── Services/
-    ├── Models/
     ├── Routes/
+    │   ├── user.route.js       # Auth routes
+    │   └── image.route.js      # Image routes
+    │
+    ├── Controllers/
+    │   ├── user.controller.js  # Auth controller
+    │   └── image.controller.js # Image controller
+    │
+    ├── Services/
+    │   ├── user.service.js     # Auth business logic
+    │   ├── image.service.js    # Image business logic
+    │   └── user.validate.service.js  # Validation helpers
+    │
+    ├── Models/
+    │   ├── user.model.js
+    │   └── image.model.js
+    │
     ├── Middleware/
+    │   ├── auth.middleware.js  # JWT verification
+    │   └── multer.middleware.js
+    │
     ├── Util/
+    │   ├── cloudinary.config.js     # Cloudinary upload utils
+    │   └── python.service.config.js # Python microservice caller
+    │
     ├── redis.cache/
+    │   └── image.redis.cache.js     # Redis get/set for image cache
+    │
     ├── rate.limiter.service/
+    │   ├── rate.limiter.config.file.js  # Upstash Redis client
+    │   ├── user.rate.limiter.js         # IP-based rate limiter
+    │   └── image.rate.limiter.js        # Per-user image rate limiter
+    │
     └── python.service/
-
-Frontend/
-├── src/
-│   ├── Pages/
-│   ├── Components/
-│   └── Services/
-```
+        └── main.py             # FastAPI image transformation server
 
 ---
 
