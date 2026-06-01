@@ -89,7 +89,9 @@ Node.js Backend (Express)
 
 ---
 
-📁 Project Structure
+## 📁 Project Structure
+
+```
 ├── index.js                    # Entry point, DB connect + server start
 ├── app.js                      # Express app setup, middleware, routes
 │
@@ -129,6 +131,8 @@ Node.js Backend (Express)
     │
     └── python.service/
         └── main.py             # FastAPI image transformation server
+
+```
 
 ---
 
