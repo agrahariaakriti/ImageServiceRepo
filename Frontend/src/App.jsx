@@ -9,10 +9,10 @@ function App() {
     <>
       {/* <Home /> */}
       {/* <Connect /> */}
-      {/* <Register /> */}
+      <Register />
       {/* <Login /> */}
       {/* <Documentation /> */}
-      <Gallery />
+      {/* <Gallery /> */}
     </>
   );
 }
