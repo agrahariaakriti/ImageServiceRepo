@@ -20,7 +20,7 @@ export const uploadimagecontroller = async (req, res) => {
 
 export const getimagecontroller = async (req, res) => {
   try {
-    console.log("In the service AAKRITIAGRAHAI.BSVCGDJ...........SDFGV ");
+
 
     const imageCode = req.params.imageCode;
     const response = await getimageservice(imageCode);
@@ -34,7 +34,7 @@ export const getimagecontroller = async (req, res) => {
 
 export const gettransformimagecontroller = async (req, res) => {
   const imagecode = req.params.imageCode;
-  console.log("Hyy in the function controler", imagecode);
+
 
   const imageinfo = await getimageservice(imagecode);
   return res
@@ -43,9 +43,14 @@ export const gettransformimagecontroller = async (req, res) => {
 };
 
 export const transformimagepostcontroller = async (req, res) => {
-  console.log("Hyy in the Controller Service .... Right Now ");
 
-  const response = await transformgetimageservice(req);
+const data= {
+  userId:req.userId,
+  imageCode:req.params.imageCode,
+  transformingparameter:req.body
+}
+const job=await imageTransformQueue.add('transform-imge',data);
+  const response = await transformgetimageservice(data);
 
   return res
     .status(200)
