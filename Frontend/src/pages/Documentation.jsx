@@ -9,7 +9,7 @@ import {
   Images,
 } from "lucide-react";
 
-function Documentation() {
+function Documentation({ user, setUser }) {
   const [active, setActive] = useState("overview");
   // flag so clicking a nav item doesn't fight the scroll spy
   const clickingRef = useRef(false);
@@ -26,15 +26,27 @@ function Documentation() {
   const scrollTo = (key) => {
     setActive(key);
     clickingRef.current = true;
-    sections[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    sections[key].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
     // re-enable scroll spy after animation (~700ms)
-    setTimeout(() => { clickingRef.current = false; }, 800);
+    setTimeout(() => {
+      clickingRef.current = false;
+    }, 800);
   };
 
   // ── scroll spy ──────────────────────────────────────────────
   useEffect(() => {
     const OFFSET = 120; // px from top to count a section as "active"
-    const keys = ["overview", "start", "auth", "upload", "transform", "gallery"];
+    const keys = [
+      "overview",
+      "start",
+      "auth",
+      "upload",
+      "transform",
+      "gallery",
+    ];
 
     const onScroll = () => {
       if (clickingRef.current) return;
@@ -56,12 +68,12 @@ function Documentation() {
   }, []);
 
   const tabs = [
-    { key: "overview",   label: "Overview",         icon: LayoutDashboard },
-    { key: "start",      label: "Getting Started",  icon: Rocket          },
-    { key: "auth",       label: "Auth",             icon: ShieldCheck     },
-    { key: "upload",     label: "Upload",           icon: Upload          },
-    { key: "transform",  label: "Transform",        icon: Wand2           },
-    { key: "gallery",    label: "Gallery",          icon: Images          },
+    { key: "overview", label: "Overview", icon: LayoutDashboard },
+    { key: "start", label: "Getting Started", icon: Rocket },
+    { key: "auth", label: "Auth", icon: ShieldCheck },
+    { key: "upload", label: "Upload", icon: Upload },
+    { key: "transform", label: "Transform", icon: Wand2 },
+    { key: "gallery", label: "Gallery", icon: Images },
   ];
 
   /* code blocks data */
@@ -90,10 +102,10 @@ function Documentation() {
       code: {
         lang: "HTTP HEADER",
         lines: [
-          { type: "key",  text: "Authorization" },
+          { type: "key", text: "Authorization" },
           { type: "punc", text: ": " },
-          { type: "str",  text: "Bearer " },
-          { type: "val",  text: "YOUR_API_KEY" },
+          { type: "str", text: "Bearer " },
+          { type: "val", text: "YOUR_API_KEY" },
         ],
       },
     },
@@ -477,7 +489,7 @@ folder       string   optional`,
       <div className="orb orb-1" />
       <div className="orb orb-2" />
 
-      <Navbar user={null} />
+      <Navbar user={user} setUser={setUser} />
 
       {/* mobile tab bar */}
       <div className="tab-bar">
@@ -497,7 +509,6 @@ folder       string   optional`,
       </div>
 
       <div className="docs-layout">
-
         {/* ── SIDEBAR ── */}
         <aside className="sidebar">
           <p className="sidebar-eyebrow">NAVIGATION</p>
@@ -520,27 +531,32 @@ folder       string   optional`,
 
         {/* ── MAIN CONTENT ── */}
         <div className="docs-content">
-
           {/* page header */}
           <div className="page-header">
             <p className="page-eyebrow">DEVELOPER REFERENCE</p>
             <h1 className="page-title">Documentation</h1>
-            <p className="page-sub">REST API reference for ImageService · v1.0</p>
+            <p className="page-sub">
+              REST API reference for ImageService · v1.0
+            </p>
           </div>
 
           {/* ── OVERVIEW ── */}
           <section ref={sections.overview} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><LayoutDashboard size={14} /></div>
+                <div className="sec-icon">
+                  <LayoutDashboard size={14} />
+                </div>
                 <span className="sec-title">Overview</span>
               </div>
               <span className="sec-badge">v1.0</span>
             </div>
             <div className="sec-body">
               <p className="sec-desc">
-                ImageService is a lightweight REST API for uploading, transforming, and managing images using
-                simple HTTP requests. No SDKs required — integrate in minutes with any language or framework.
+                ImageService is a lightweight REST API for uploading,
+                transforming, and managing images using simple HTTP requests. No
+                SDKs required — integrate in minutes with any language or
+                framework.
               </p>
             </div>
           </section>
@@ -549,7 +565,9 @@ folder       string   optional`,
           <section ref={sections.start} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><Rocket size={14} /></div>
+                <div className="sec-icon">
+                  <Rocket size={14} />
+                </div>
                 <span className="sec-title">Getting Started</span>
               </div>
               <span className="sec-badge">Quick Start</span>
@@ -563,7 +581,9 @@ folder       string   optional`,
                   "Make your first API call and start building",
                 ].map((text, i) => (
                   <div key={i} className="step-row">
-                    <span className="step-num">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="step-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                     <span className="step-text">{text}</span>
                   </div>
                 ))}
@@ -575,20 +595,25 @@ folder       string   optional`,
           <section ref={sections.auth} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><ShieldCheck size={14} /></div>
+                <div className="sec-icon">
+                  <ShieldCheck size={14} />
+                </div>
                 <span className="sec-title">Authentication</span>
               </div>
               <span className="sec-badge">Required</span>
             </div>
             <div className="sec-body">
               <p className="sec-desc">
-                All requests require an API key passed as a Bearer token in the Authorization header.
-                Keys are project-scoped and can be rotated anytime from the dashboard.
+                All requests require an API key passed as a Bearer token in the
+                Authorization header. Keys are project-scoped and can be rotated
+                anytime from the dashboard.
               </p>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">HTTP HEADER</span>
                   <span style={{ width: 48 }} />
@@ -607,20 +632,25 @@ folder       string   optional`,
           <section ref={sections.upload} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><Upload size={14} /></div>
+                <div className="sec-icon">
+                  <Upload size={14} />
+                </div>
                 <span className="sec-title">Upload API</span>
               </div>
               <span className="sec-badge post">POST</span>
             </div>
             <div className="sec-body">
               <p className="sec-desc">
-                Upload images via multipart form data. Returns a JSON object with the image ID, public CDN URL,
-                and metadata. Supports JPEG, PNG, WebP, and AVIF formats up to 20MB.
+                Upload images via multipart form data. Returns a JSON object
+                with the image ID, public CDN URL, and metadata. Supports JPEG,
+                PNG, WebP, and AVIF formats up to 20MB.
               </p>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">REQUEST</span>
                   <span style={{ width: 48 }} />
@@ -636,7 +666,9 @@ public       boolean   optional  (default: true)`}</pre>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">JSON</span>
                   <span style={{ width: 48 }} />
@@ -656,20 +688,25 @@ public       boolean   optional  (default: true)`}</pre>
           <section ref={sections.transform} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><Wand2 size={14} /></div>
+                <div className="sec-icon">
+                  <Wand2 size={14} />
+                </div>
                 <span className="sec-title">Transform API</span>
               </div>
               <span className="sec-badge post">POST</span>
             </div>
             <div className="sec-body">
               <p className="sec-desc">
-                Resize, crop, convert format, or apply filters to any uploaded image.
-                Transformations are applied non-destructively — the original is always preserved.
+                Resize, crop, convert format, or apply filters to any uploaded
+                image. Transformations are applied non-destructively — the
+                original is always preserved.
               </p>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">REQUEST</span>
                   <span style={{ width: 48 }} />
@@ -686,7 +723,9 @@ format       string    webp | jpeg | png | avif`}</pre>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">JSON</span>
                   <span style={{ width: 48 }} />
@@ -704,20 +743,24 @@ format       string    webp | jpeg | png | avif`}</pre>
           <section ref={sections.gallery} className="doc-section">
             <div className="sec-head">
               <div className="sec-title-row">
-                <div className="sec-icon"><Images size={14} /></div>
+                <div className="sec-icon">
+                  <Images size={14} />
+                </div>
                 <span className="sec-title">Gallery API</span>
               </div>
               <span className="sec-badge get">GET</span>
             </div>
             <div className="sec-body">
               <p className="sec-desc">
-                Fetch all uploaded images for the authenticated user.
-                Supports pagination and optional folder filtering.
+                Fetch all uploaded images for the authenticated user. Supports
+                pagination and optional folder filtering.
               </p>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">REQUEST</span>
                   <span style={{ width: 48 }} />
@@ -732,7 +775,9 @@ folder       string    optional`}</pre>
               <div className="code-block">
                 <div className="code-topbar">
                   <div className="code-dots">
-                    <div className="cdot cdot-r" /><div className="cdot cdot-y" /><div className="cdot cdot-g" />
+                    <div className="cdot cdot-r" />
+                    <div className="cdot cdot-y" />
+                    <div className="cdot cdot-g" />
                   </div>
                   <span className="code-lang">JSON</span>
                   <span style={{ width: 48 }} />
@@ -746,7 +791,6 @@ folder       string    optional`}</pre>
               </div>
             </div>
           </section>
-
         </div>
       </div>
     </div>

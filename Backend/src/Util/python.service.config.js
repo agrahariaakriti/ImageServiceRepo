@@ -2,8 +2,7 @@ import axios from "axios";
 
 export const processImgae = async (imageurl, changingparameter) => {
   try {
-    console.log("Hyy here in python config");
-    const { resized, crop, grayscale, rotate } = changingparameter;
+    var { resized, crop, grayscale, rotate } = changingparameter;
     if (grayscale == null) {
       grayscale = "";
     }
@@ -14,7 +13,7 @@ export const processImgae = async (imageurl, changingparameter) => {
         imageurl: imageurl,
         changingparameter: changingparameter,
       },
-      { responseType: "arraybuffer" },
+      { responseType: "arraybuffer", timeout: 10000 },
     );
 
     return responce.data;

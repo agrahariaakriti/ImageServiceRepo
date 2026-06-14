@@ -1,20 +1,56 @@
-import { useState } from "react";
+import { api } from "../stores/api.service.js";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { ImageIcon, Eye, Pencil, Trash2, Copy, X, Check, LayoutGrid, List } from "lucide-react";
-
-function Gallery() {
-  const [images, setImages] = useState(
-    Array.from({ length: 15 }, (_, i) => ({
-      id: i + 1,
-      name: `image-${String(i + 1).padStart(3, "0")}.jpg`,
-      image: `https://picsum.photos/800/600?random=${i + 1}`,
-      imageUrl: `https://picsum.photos/800/600?random=${i + 1}`,
-    }))
-  );
-
+import {
+  ImageIcon,
+  Eye,
+  Pencil,
+  Trash2,
+  Copy,
+  X,
+  Check,
+  LayoutGrid,
+  List,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+function Gallery({ user, setUser }) {
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [view, setView] = useState("grid"); // grid | list
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        setLoading(true);
+
+        const response = await api.get("/image/getallimg");
+
+        console.log("bnvcvjwgy32ihm,....bdwutug....cbnwegk....", response.data);
+
+        const formattedImages = response.data.msg.map((img) => ({
+          id: img._id,
+          name: img.generatedCode,
+          image: img.originalUrl,
+          imageUrl: img.originalUrl,
+          generatedCode: img.generatedCode,
+          width: img.imageSize?.width,
+          height: img.imageSize?.height,
+          createdAt: img.createdAt,
+        }));
+
+        setImages(formattedImages);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImages();
+  }, []);
 
   const handleCopy = async (id, url) => {
     try {
@@ -33,9 +69,16 @@ function Gallery() {
   };
 
   const handleEdit = (img) => {
+    navigate("/editimage", { state: { image: img } });
     console.log("Navigate to edit page:", img);
   };
-
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#04060c] flex items-center justify-center text-cyan-300">
+        Loading Images...
+      </div>
+    );
+  }
   return (
     <div className="gallery-root">
       <style>{`
@@ -425,16 +468,17 @@ function Gallery() {
       <div className="orb orb-1" />
       <div className="orb orb-2" />
 
-      <Navbar user={null} />
+      <Navbar user={user} setUser={setUser} />
 
       <div className="page">
-
         {/* ── HEADER ── */}
         <div className="header-bar">
           <div className="header-left">
             <p className="header-eyebrow">IMAGE SHARING SYSTEM</p>
             <h1 className="header-title">Gallery</h1>
-            <p className="header-sub">Manage, preview and share your uploaded images</p>
+            <p className="header-sub">
+              Manage, preview and share your uploaded images
+            </p>
           </div>
 
           <div className="header-right">
@@ -472,17 +516,31 @@ function Gallery() {
               <div key={img.id} className="img-card">
                 <img src={img.image} alt={img.name} loading="lazy" />
 
-                <span className="img-index">{String(i + 1).padStart(2, "0")}</span>
+                <span className="img-index">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
 
                 <div className="img-overlay">
                   <div className="overlay-top">
-                    <button className="ov-btn" onClick={() => setSelected(img)} title="Preview">
+                    <button
+                      className="ov-btn"
+                      onClick={() => setSelected(img)}
+                      title="Preview"
+                    >
                       <Eye size={14} />
                     </button>
-                    <button className="ov-btn" onClick={() => handleEdit(img)} title="Edit">
+                    <button
+                      className="ov-btn"
+                      onClick={() => handleEdit(img)}
+                      title="Edit"
+                    >
                       <Pencil size={14} />
                     </button>
-                    <button className="ov-btn danger" onClick={() => handleDelete(img.id)} title="Delete">
+                    <button
+                      className="ov-btn danger"
+                      onClick={() => handleDelete(img.id)}
+                      title="Delete"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -496,10 +554,16 @@ function Gallery() {
                       >
                         {copiedId === img.id ? "✓ copied" : "copy url"}
                       </button>
-                      <button className="act-btn" onClick={() => handleEdit(img)}>
+                      <button
+                        className="act-btn"
+                        onClick={() => handleEdit(img)}
+                      >
                         edit
                       </button>
-                      <button className="act-btn del" onClick={() => handleDelete(img.id)}>
+                      <button
+                        className="act-btn del"
+                        onClick={() => handleDelete(img.id)}
+                      >
                         delete
                       </button>
                     </div>
@@ -515,7 +579,12 @@ function Gallery() {
           <div className="img-list">
             {images.map((img) => (
               <div key={img.id} className="list-row">
-                <img className="list-thumb" src={img.image} alt={img.name} loading="lazy" />
+                <img
+                  className="list-thumb"
+                  src={img.image}
+                  alt={img.name}
+                  loading="lazy"
+                />
 
                 <div className="list-info">
                   <div className="list-name">{img.name}</div>
@@ -523,7 +592,11 @@ function Gallery() {
                 </div>
 
                 <div className="list-actions">
-                  <button className="lbtn" onClick={() => setSelected(img)} title="Preview">
+                  <button
+                    className="lbtn"
+                    onClick={() => setSelected(img)}
+                    title="Preview"
+                  >
                     <Eye size={13} />
                   </button>
                   <button
@@ -531,12 +604,24 @@ function Gallery() {
                     onClick={() => handleCopy(img.id, img.imageUrl)}
                     title="Copy URL"
                   >
-                    {copiedId === img.id ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedId === img.id ? (
+                      <Check size={13} />
+                    ) : (
+                      <Copy size={13} />
+                    )}
                   </button>
-                  <button className="lbtn" onClick={() => handleEdit(img)} title="Edit">
+                  <button
+                    className="lbtn"
+                    onClick={() => handleEdit(img)}
+                    title="Edit"
+                  >
                     <Pencil size={13} />
                   </button>
-                  <button className="lbtn del" onClick={() => handleDelete(img.id)} title="Delete">
+                  <button
+                    className="lbtn del"
+                    onClick={() => handleDelete(img.id)}
+                    title="Delete"
+                  >
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -548,23 +633,31 @@ function Gallery() {
         {/* ── EMPTY STATE ── */}
         {images.length === 0 && (
           <div className="empty">
-            <div className="empty-icon"><ImageIcon size={24} /></div>
+            <div className="empty-icon">
+              <ImageIcon size={24} />
+            </div>
             <h2 className="empty-title">No Images Found</h2>
             <p className="empty-sub">Upload images to get started</p>
           </div>
         )}
-
       </div>
 
       {/* ── LIGHTBOX ── */}
       {selected && (
         <div className="lightbox-bg" onClick={() => setSelected(null)}>
           <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setSelected(null)}>
+            <button
+              className="lightbox-close"
+              onClick={() => setSelected(null)}
+            >
               <X size={15} />
             </button>
 
-            <img src={selected.image} className="lightbox-img" alt={selected.name} />
+            <img
+              src={selected.image}
+              className="lightbox-img"
+              alt={selected.name}
+            />
 
             <div className="lightbox-footer">
               <span className="lb-name">{selected.name}</span>

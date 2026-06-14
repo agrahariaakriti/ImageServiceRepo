@@ -29,9 +29,8 @@ export const uploadOnCloudinar = async (localFilepath) => {
   }
 };
 
-export const uploadBufferDataToCloudinary =async (buffer) => {
+export const uploadBufferDataToCloudinary = async (buffer) => {
   return new Promise((resolve, reject) => {
-
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "edited-images",
@@ -42,10 +41,9 @@ export const uploadBufferDataToCloudinary =async (buffer) => {
         } else {
           resolve(result);
         }
-      }
+      },
     );
 
     streamifier.createReadStream(buffer).pipe(stream);
-
   });
 };

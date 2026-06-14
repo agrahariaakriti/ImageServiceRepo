@@ -27,7 +27,6 @@ const generaterefreshtoken = async (user) => {
 };
 
 export const createUserService = async (userData) => {
-  console.log("inside the code base controller");
   if (
     !userData.username ||
     !userData.email ||
@@ -45,12 +44,16 @@ export const createUserService = async (userData) => {
     throw error;
   }
   if (!usernameValidation(userData.username)) {
-    const error = new Error("Invalid username");
+    const error = new Error(
+      "Username must be 3-20 characters long and can only contain letters, numbers, and underscores.",
+    );
     error.statusCode = 400;
     throw error;
   }
   if (!passwordValidation(userData.password)) {
-    const error = new Error("Invalid password");
+    const error = new Error(
+      "Password must be at least 6 characters long and contain both letters and numbers.",
+    );
     error.statusCode = 400;
     throw error;
   }
@@ -80,16 +83,32 @@ export const createUserService = async (userData) => {
 };
 
 export const loginUserService = async (userData) => {
-  const user = await User.findOne({ email: userData.email });
-  if (!user) {
-    const error = new Error("User not found");
+  console.log("Inside the service", userData);
+
+  if (!emailValidation(userData.email)) {
+    const error = new Error("Invalid email");
     error.statusCode = 400;
     throw error;
   }
+
+  const user = await User.findOne({ email: userData.email });
+  console.log("Inside the service2222222222", userData);
+
+  if (!user) {
+    console.log("Inside the service33333333", userData);
+
+    const error = new Error("Invalid Email or Password");
+    error.statusCode = 400;
+    throw error;
+  }
+  console.log("Inside the service44444444", userData);
+
   const isPasswordCorrect = await bcrypt.compare(
     userData.password,
     user.password,
   );
+  console.log("Inside the service555555", userData);
+
   if (!isPasswordCorrect) {
     const error = new Error("Invalid password");
     error.statusCode = 400;
@@ -99,12 +118,20 @@ export const loginUserService = async (userData) => {
   const refreshToken = await generaterefreshtoken(user);
   user.refreshToken = refreshToken;
   await user.save();
-  return { accessToken, refreshToken };
+  console.log("Inside the service666666666666", userData);
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      username: user.username,
+      fullname: user.fullname,
+      email: user.email,
+    },
+  };
 };
 
 export const logoutUserService = async (userId) => {
-  console.log("Aakriti agraharil....", userId);
-
   await User.findByIdAndUpdate(
     userId,
     {
@@ -141,5 +168,14 @@ export const refreshTokenGeneratorservice = async (req) => {
     throw error;
   }
   const accessToken = await generateaccesstoken(user);
-  return accessToken;
+
+  return {
+    accessToken,
+    user: {
+      user: user._id,
+      username: user.username,
+      email: user.email,
+      fullname: user.fullname,
+    },
+  };
 };

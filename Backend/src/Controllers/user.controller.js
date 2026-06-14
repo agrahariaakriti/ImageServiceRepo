@@ -45,7 +45,7 @@ export const signincontroller = async (req, res) => {
       .status(200)
       .cookie("accessToken", loginUser.accessToken, options)
       .cookie("refreshToken", loginUser.refreshToken, options)
-      .json({ message: "User login successfully" });
+      .json({ message: "User login successfully", user: loginUser.user });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ message: error.message });
   }
@@ -53,6 +53,8 @@ export const signincontroller = async (req, res) => {
 
 export const logoutcontroller = async (req, res) => {
   try {
+    console.log("hyyy aakriti kaise ho ....");
+
     const userId = req.userId;
     await logoutUserService(userId);
 
@@ -75,6 +77,8 @@ export const logoutcontroller = async (req, res) => {
 export const refreshTokenGeneratorcontroller = async (req, res) => {
   //   const user = req.cookie.refreshToken;
   try {
+    console.log("qwertyuioplkjhgfdsazxcvbnm,.......");
+
     const response = await refreshTokenGeneratorservice(req);
     const options = {
       httpOnly: true,
@@ -84,8 +88,8 @@ export const refreshTokenGeneratorcontroller = async (req, res) => {
     };
     return res
       .status(200)
-      .cookie("accessToken", response, options)
-      .json({ message: "User login successfully" });
+      .cookie("accessToken", response.accessToken, options)
+      .json({ message: "User login successfully", user: response.user });
   } catch (error) {
     return res
       .status(error.statusCode || 500)

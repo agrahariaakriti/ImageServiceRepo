@@ -1,6 +1,6 @@
-
-
 export const emailValidation = (email) => {
+  console.log("hyy in the email validaor", email);
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -11,7 +11,6 @@ export const usernameValidation = (username) => {
 };
 
 export const passwordValidation = (password) => {
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/; 
   return passwordRegex.test(password);
 };

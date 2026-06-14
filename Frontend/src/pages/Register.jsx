@@ -1,3 +1,5 @@
+import { api } from "../stores/api.service.js";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -5,30 +7,63 @@ import { Link } from "react-router-dom";
 import { User, AtSign, Mail, Lock, UserPlus, ArrowRight } from "lucide-react";
 
 function Register() {
+  const [focused, setFocused] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     username: "",
-    name: "",
+    fullname: "",
     email: "",
     password: "",
   });
-  const [focused, setFocused] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register Data:", form);
+
+    setError("");
+
+    if (
+      !form.username.trim() ||
+      !form.fullname.trim() ||
+      !form.email.trim() ||
+      !form.password.trim()
+    ) {
+      setError("All fields are required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await api.post("/users/signup", form);
+
+      console.log("Success:", response.data);
+
+      navigate("/login");
+    } catch (error) {
+      console.error(error);
+
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Registration failed. Please try again.";
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
-
   const fields = [
-    { name: "username",  type: "text",     placeholder: "Username",      icon: AtSign },
-    { name: "name",      type: "text",     placeholder: "Full Name",     icon: User   },
-    { name: "email",     type: "email",    placeholder: "Email Address", icon: Mail   },
-    { name: "password",  type: "password", placeholder: "Password",      icon: Lock   },
+    { name: "username", type: "text", placeholder: "Username", icon: AtSign },
+    { name: "fullname", type: "text", placeholder: "Full Name", icon: User },
+    { name: "email", type: "email", placeholder: "Email Address", icon: Mail },
+    { name: "password", type: "password", placeholder: "Password", icon: Lock },
   ];
-
   return (
     <div className="reg-root">
       <style>{`
@@ -278,7 +313,6 @@ function Register() {
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
         <div className="card-inner">
-
           {/* ── HEADER ── */}
           <div className="card-header">
             <div className="icon-wrap">
@@ -287,30 +321,74 @@ function Register() {
             <h1 className="card-title">Create Account</h1>
             <p className="card-sub">Join ImageService and start building</p>
           </div>
-
+          {error && (
+            <div
+              style={{
+                marginBottom: "15px",
+                padding: "12px",
+                borderRadius: "8px",
+                background: "rgba(239,68,68,0.12)",
+                border: "1px solid rgba(239,68,68,0.25)",
+                color: "#f87171",
+                fontSize: "13px",
+                textAlign: "center",
+              }}
+            >
+              {error}
+            </div>
+          )}
           {/* ── FORM ── */}
           <div className="card-body">
-
             {/* perks */}
             <div className="perks">
               {["Free forever", "No card needed", "API access"].map((p) => (
                 <span key={p} className="perk">
-                  <span className="perk-dot" />{p}
+                  <span className="perk-dot" />
+                  {p}
                 </span>
               ))}
             </div>
 
             <form onSubmit={handleSubmit}>
               <div className="fields">
-
                 {/* username + name on same row */}
                 <div className="field-row">
-                  {fields.slice(0, 2).map(({ name, type, placeholder, icon: Icon }) => (
+                  {fields
+                    .slice(0, 2)
+                    .map(({ name, type, placeholder, icon: Icon }) => (
+                      <div
+                        key={name}
+                        className={`field-wrap ${focused === name ? "is-focused" : ""} ${forma[name] ? "has-value" : ""}`}
+                      >
+                        <span className="field-icon">
+                          <Icon size={13} />
+                        </span>
+                        <input
+                          className="field-input"
+                          type={type}
+                          name={name}
+                          placeholder={placeholder}
+                          value={form[name]}
+                          onChange={handleChange}
+                          onFocus={() => setFocused(name)}
+                          onBlur={() => setFocused("")}
+                          autoComplete="off"
+                        />
+                      </div>
+                    ))}
+                </div>
+
+                {/* email + password full width */}
+                {fields
+                  .slice(2)
+                  .map(({ name, type, placeholder, icon: Icon }) => (
                     <div
                       key={name}
                       className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
                     >
-                      <span className="field-icon"><Icon size={13} /></span>
+                      <span className="field-icon">
+                        <Icon size={13} />
+                      </span>
                       <input
                         className="field-input"
                         type={type}
@@ -324,33 +402,24 @@ function Register() {
                       />
                     </div>
                   ))}
-                </div>
-
-                {/* email + password full width */}
-                {fields.slice(2).map(({ name, type, placeholder, icon: Icon }) => (
-                  <div
-                    key={name}
-                    className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
-                  >
-                    <span className="field-icon"><Icon size={13} /></span>
-                    <input
-                      className="field-input"
-                      type={type}
-                      name={name}
-                      placeholder={placeholder}
-                      value={form[name]}
-                      onChange={handleChange}
-                      onFocus={() => setFocused(name)}
-                      onBlur={() => setFocused("")}
-                      autoComplete="off"
-                    />
-                  </div>
-                ))}
-
               </div>
 
-              <button type="submit" className="submit-btn">
-                Create Account <ArrowRight size={14} />
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={loading}
+                style={{
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {loading ? (
+                  "Creating Account..."
+                ) : (
+                  <>
+                    Create Account <ArrowRight size={14} />
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -359,10 +428,11 @@ function Register() {
           <div className="card-footer">
             <p className="footer-text">
               Already have an account?{" "}
-              <Link to="/login" className="footer-link">Sign in</Link>
+              <Link to="/login" className="footer-link">
+                Sign in
+              </Link>
             </p>
           </div>
-
         </div>
       </motion.div>
     </div>

@@ -3,7 +3,7 @@ import { User, Mail, FolderGit2, ArrowUpRight, Target } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { SiLeetcode } from "react-icons/si";
 
-function Connect() {
+function Connect({ user, setUser }) {
   const projects = [
     {
       name: "ImageService",
@@ -26,10 +26,30 @@ function Connect() {
   ];
 
   const socials = [
-    { icon: FaLinkedin, label: "LinkedIn", sub: "Let's connect", href: "https://www.linkedin.com/in/aakriti-agrahari/" },
-    { icon: FaGithub, label: "GitHub", sub: "See my code", href: "https://github.com/agrahariaakriti" },
-    { icon: SiLeetcode, label: "LeetCode", sub: "DSA grind", href: "https://leetcode.com/u/aakriti_agrahari1/" },
-    { icon: Mail, label: "Email", sub: "Say hello", href: "mailto:agrahariaakriti1@gmail.com" },
+    {
+      icon: FaLinkedin,
+      label: "LinkedIn",
+      sub: "Let's connect",
+      href: "https://www.linkedin.com/in/aakriti-agrahari/",
+    },
+    {
+      icon: FaGithub,
+      label: "GitHub",
+      sub: "See my code",
+      href: "https://github.com/agrahariaakriti",
+    },
+    {
+      icon: SiLeetcode,
+      label: "LeetCode",
+      sub: "DSA grind",
+      href: "https://leetcode.com/u/aakriti_agrahari1/",
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      sub: "Say hello",
+      href: "mailto:agrahariaakriti1@gmail.com",
+    },
   ];
 
   return (
@@ -442,10 +462,9 @@ function Connect() {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
-      <Navbar user={null} />
+      <Navbar user={User} setUser={setUser} />
 
       <div className="page">
-
         {/* ── HERO ── */}
         <section style={{ marginBottom: "80px" }}>
           <p className="eyebrow">SOFTWARE ENGINEER · BACKEND FOCUS</p>
@@ -454,13 +473,16 @@ function Connect() {
           <h2 className="hero-sub">Builder.</h2>
 
           <p className="hero-para">
-            I build backend systems, APIs, and full-stack apps with focus on performance,
-            clean architecture, and real-world scalability. I learn by building — not watching.
+            I build backend systems, APIs, and full-stack apps with focus on
+            performance, clean architecture, and real-world scalability. I learn
+            by building — not watching.
           </p>
 
           <div className="tags-row">
             {["Node.js", "React", "MongoDB", "REST APIs", "DSA"].map((t) => (
-              <span key={t} className="tag">{t}</span>
+              <span key={t} className="tag">
+                {t}
+              </span>
             ))}
           </div>
         </section>
@@ -475,16 +497,21 @@ function Connect() {
 
           <div className="two-col">
             <div className="info-block">
-              <div className="block-icon"><User size={16} /></div>
+              <div className="block-icon">
+                <User size={16} />
+              </div>
               <p className="block-title">About</p>
               <p className="block-body">
-                I don't focus on flashy apps. I focus on systems that actually work:
-                authentication flows, API design, database structure, and performance under load.
+                I don't focus on flashy apps. I focus on systems that actually
+                work: authentication flows, API design, database structure, and
+                performance under load.
               </p>
             </div>
 
             <div className="info-block">
-              <div className="block-icon"><Target size={16} /></div>
+              <div className="block-icon">
+                <Target size={16} />
+              </div>
               <p className="block-title">Current Focus</p>
               <div>
                 {[
@@ -525,7 +552,9 @@ function Connect() {
                 <p className="proj-desc">{p.desc}</p>
                 <div className="proj-tags">
                   {p.tech.map((t) => (
-                    <span key={t} className="proj-tag">{t}</span>
+                    <span key={t} className="proj-tag">
+                      {t}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -571,7 +600,6 @@ function Connect() {
             AVAILABLE FOR WORK
           </span>
         </div>
-
       </div>
     </div>
   );

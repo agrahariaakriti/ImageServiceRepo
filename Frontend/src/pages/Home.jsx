@@ -1,10 +1,15 @@
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
-import { Upload, Wand2, ShieldCheck, ArrowRight, Terminal, Zap } from "lucide-react";
+import {
+  Upload,
+  Wand2,
+  ShieldCheck,
+  ArrowRight,
+  Terminal,
+  Zap,
+} from "lucide-react";
 
-export default function Home() {
-  const user = null;
-
+export default function Home({ user, setUser }) {
   const features = [
     {
       icon: Upload,
@@ -437,10 +442,9 @@ export default function Home() {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
-      <Navbar user={user} />
+      <Navbar user={user} setUser={setUser} />
 
       <div className="page">
-
         {/* ── HERO ── */}
         <section className="hero">
           <p className="eyebrow fade-1">DEVELOPER IMAGE API</p>
@@ -451,21 +455,21 @@ export default function Home() {
           </h1>
 
           <p className="hero-para fade-3">
-            Upload, transform, optimize and serve images through a clean REST API.
-            Fast integration, simple workflows, developer-friendly tooling from day one.
+            Upload, transform, optimize and serve images through a clean REST
+            API. Fast integration, simple workflows, developer-friendly tooling
+            from day one.
           </p>
 
           <div className="cta-row fade-4">
             <Link to="/register" className="btn-primary">
               Get Started <ArrowRight size={14} />
             </Link>
-            <Link to="/docs" className="btn-ghost">
+            <Link to="/documentation" className="btn-ghost">
               <Terminal size={13} /> View Docs
             </Link>
           </div>
         </section>
 
-        {/* ── STATS STRIP ── */}
         <div className="stats-strip">
           {stats.map((s) => (
             <div key={s.label} className="stat-cell">
@@ -501,19 +505,23 @@ export default function Home() {
                 <span className="api-flag"> -X </span>
                 <span className="api-str">POST</span>
                 {` https://api.imageservice.com/v1/upload \\\n`}
-                <span className="api-flag">  -H </span>
+                <span className="api-flag"> -H </span>
                 <span className="api-str">"Authorization: Bearer </span>
                 <span className="api-key">YOUR_API_KEY</span>
                 <span className="api-str">"</span>
                 {` \\\n`}
-                <span className="api-flag">  -H </span>
-                <span className="api-str">"Content-Type: multipart/form-data"</span>
+                <span className="api-flag"> -H </span>
+                <span className="api-str">
+                  "Content-Type: multipart/form-data"
+                </span>
                 {` \\\n`}
-                <span className="api-flag">  -F </span>
+                <span className="api-flag"> -F </span>
                 <span className="api-str">"image=@photo.jpg"</span>
                 {` \\\n`}
-                <span className="api-flag">  -F </span>
-                <span className="api-str">"transform=resize:800x600,format:webp"</span>
+                <span className="api-flag"> -F </span>
+                <span className="api-str">
+                  "transform=resize:800x600,format:webp"
+                </span>
               </pre>
             </div>
           </div>
@@ -535,7 +543,9 @@ export default function Home() {
               return (
                 <div key={f.num} className="feat-card">
                   <p className="feat-num">{f.num}</p>
-                  <div className="feat-icon-wrap"><Icon size={18} /></div>
+                  <div className="feat-icon-wrap">
+                    <Icon size={18} />
+                  </div>
                   <h3 className="feat-title">{f.title}</h3>
                   <p className="feat-desc">{f.desc}</p>
                 </div>
@@ -553,12 +563,20 @@ export default function Home() {
               <span className="cta-badge-dot" />
               FREE TO START
             </div>
-            <h2 className="cta-h2">Start Building<br />Today.</h2>
+            <h2 className="cta-h2">
+              Start Building
+              <br />
+              Today.
+            </h2>
             <p className="cta-para">
-              Integrate image uploads, transformations and CDN delivery into your
-              app in under 10 minutes. No credit card required.
+              Integrate image uploads, transformations and CDN delivery into
+              your app in under 10 minutes. No credit card required.
             </p>
-            <Link to="/register" className="btn-primary" style={{ display: "inline-flex" }}>
+            <Link
+              to="/register"
+              className="btn-primary"
+              style={{ display: "inline-flex" }}
+            >
               Create Free Account <ArrowRight size={14} />
             </Link>
           </div>
@@ -569,7 +587,6 @@ export default function Home() {
           <span className="footer-mono">IMAGESERVICE © 2026</span>
           <span className="footer-mono">BUILT FOR DEVELOPERS</span>
         </div>
-
       </div>
     </div>
   );

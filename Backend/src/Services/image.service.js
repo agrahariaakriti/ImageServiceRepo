@@ -61,20 +61,16 @@ export const imageUploadService = async (req) => {
 };
 
 export const getimageservice = async (imageCode) => {
-
-
   if (!imageCode) {
     const error = new Error("Invalid url");
     error.statusCode = 400;
     throw error;
   }
 
-
   const getimagecache = await getimagerediscache(imageCode);
   if (getimagecache) {
     return getimagecache;
   }
-
 
   const imageInfo = await Imagedb.findOne({ generatedCode: imageCode });
 
@@ -84,18 +80,16 @@ export const getimageservice = async (imageCode) => {
     throw error;
   }
 
-
   await setimagerediscache(imageCode, imageInfo);
 
   return imageInfo;
 };
 
-export const transformgetimageservice = async (req) => {
+export const transformgetimageservice = async (data) => {
   try {
-
-    const user = req.userId;
-    const parameter = req.params.imageCode;
-    const transformingparameter = req.body;
+    const userId = data.userId;
+    const parameter = data.imageCode;
+    const transformingparameter = data.transformingparameter;
 
     if (!parameter) {
       const error = new Error("Invalid url");
@@ -103,10 +97,9 @@ export const transformgetimageservice = async (req) => {
       throw error;
     }
 
-
     const imageInfo = await Imagedb.findOne({ generatedCode: parameter });
 
-    if (imageInfo.length == 0) {
+    if (!imageInfo) {
       const error = new Error("Invalid url");
       error.statusCode = 400;
       throw error;
@@ -120,16 +113,13 @@ export const transformgetimageservice = async (req) => {
       imageInfo.originalUrl,
       transformingparameter,
     );
-    console.log("Hyy in the transofmra Service .... Right Now 666666666666");
 
     if (!responce || responce.length === 0) {
       throw new Error("Invalid image from Python");
     }
-    console.log("Hyy in the transofmra Service .... Right Now 77777777777777");
 
     const imageCode = nanoid(8);
     const generatedimageUrl = `${process.env.imageurl}/fetch/${imageCode}`;
-    console.log("Hyy in the transofmra Service .... Right Now 88888888888");
 
     const cloudinaryRes = await uploadBufferDataToCloudinary(responce);
     if (!cloudinaryRes) {
@@ -137,11 +127,8 @@ export const transformgetimageservice = async (req) => {
       error.statusCode = 500;
       throw error;
     }
-    console.log(
-      "Hyy in the transofmra Service .... Right Now 9999999999999999",
-    );
 
-    await Imagedb.create({
+    const newimage = await Imagedb.create({
       originalUrl: cloudinaryRes.secure_url,
       generatedCode: imageCode,
       publicId: cloudinaryRes.public_id,
@@ -153,7 +140,7 @@ export const transformgetimageservice = async (req) => {
       },
       bytes: cloudinaryRes.bytes,
     });
-    return { url: generatedimageUrl, code: imageCode };
+    return { url: generatedimageUrl, code: imageCode, image: newimage };
   } catch (error) {
     throw error;
   }
@@ -161,6 +148,7 @@ export const transformgetimageservice = async (req) => {
 
 export const getallimageservice = async (req) => {
   const userId = req.userId;
+  console.log("hyy user ID IS HERE ....", userId);
   if (!userId) {
     const error = new Error(
       "Can not get the image. Please try after sometime ",
@@ -169,6 +157,7 @@ export const getallimageservice = async (req) => {
     throw error;
   }
   const img_arr = await Imagedb.find({ userId });
+  console.log("hyy image ARRAY IS HERE ....", img_arr);
 
   return img_arr;
 };

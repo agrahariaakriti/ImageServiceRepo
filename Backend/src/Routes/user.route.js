@@ -9,7 +9,6 @@ import {
 import { authmiddleware } from "../Middleware/auth.middleware.js";
 export const userroute = Router();
 
-
 userroute.route("/signup").post(signupcontroller);
 userroute.route("/signin").post(signincontroller);
 userroute.route("/logout").get(authmiddleware, logoutcontroller);
