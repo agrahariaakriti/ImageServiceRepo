@@ -3,7 +3,7 @@ import { User, Mail, FolderGit2, ArrowUpRight, Target } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { SiLeetcode } from "react-icons/si";
 
-function Connect({ user, setUser }) {
+function Connect({ user, setUser, onLogOut, setOnLogOut }) {
   const projects = [
     {
       name: "ImageService",
@@ -462,7 +462,12 @@ function Connect({ user, setUser }) {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
-      <Navbar user={User} setUser={setUser} />
+      <Navbar
+        user={user}
+        setUser={setUser}
+        onLogOut={onLogOut}
+        setOnLogOut={setOnLogOut}
+      />
 
       <div className="page">
         {/* ── HERO ── */}

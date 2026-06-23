@@ -15,6 +15,10 @@ export const upload = multer({
   limit: {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
+  fileFilter: (req, file, cb) => {
+    console.log("FILE RECEIVED:");
+    console.log(file);
+
+    cb(null, true);
+  },
 });
-
-

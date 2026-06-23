@@ -3,6 +3,7 @@ import {
   getimageservice,
   getallimageservice,
   transformgetimageservice,
+  removeimageservice,
 } from "../Services/image.service.js";
 import { imageTransformQueue } from "../Queues/image.queue.js";
 import { loginUserService } from "../Services/user.service.js";
@@ -105,6 +106,21 @@ export const getallimagecontroller = async (req, res) => {
     console.log("hyy image ARRAY IS HERE CONTROLLER ....", get_image_arr);
     return res.status(200).json({ msg: get_image_arr });
   } catch (error) {
+    return res.status(error.statusCode || 500).json({ message: error.message });
+  }
+};
+
+export const removeimagecontroller = async (req, res) => {
+  try {
+    const imageCode = req.params.jobId;
+    console.log("rajaaaaa....", imageCode);
+
+    const responce = await removeimageservice(imageCode);
+
+    return res.status(200).json({ msg: "DELETD SUCCESSFULY 🎉" });
+  } catch (error) {
+    console.log("hdscsbc....", error);
+
     return res.status(error.statusCode || 500).json({ message: error.message });
   }
 };

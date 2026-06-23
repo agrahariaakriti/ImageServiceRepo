@@ -47,3 +47,17 @@ export const uploadBufferDataToCloudinary = async (buffer) => {
     streamifier.createReadStream(buffer).pipe(stream);
   });
 };
+
+export const deleteFromCloudinary = async (public_id) => {
+  try {
+    const res = await cloudinary.uploader.destroy(public_id, {
+      invalidate: true,
+    });
+    console.log("Cloudinary delete response:", res);
+
+    return res;
+  } catch (error) {
+    console.log("Error is .... ", error);
+    return null;
+  }
+};

@@ -7,13 +7,18 @@ import {
   Pencil,
   Trash2,
   Copy,
+  Download,
   X,
   Check,
   LayoutGrid,
   List,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-function Gallery({ user, setUser }) {
+
+function Gallery({ user, setUser, onLogOut, setOnLogOut }) {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -21,14 +26,21 @@ function Gallery({ user, setUser }) {
   const [copiedId, setCopiedId] = useState(null);
   const [view, setView] = useState("grid"); // grid | list
 
+  // Only one delete can be in flight at a time — this id is the one being deleted.
+  // While it's set, every delete button everywhere is disabled.
+  const [deletingId, setDeletingId] = useState(null);
+  // Image pending a confirm step before deletion actually fires.
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  // Lightweight in-theme toast, replaces alert().
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message }
+  // Tracks which image is currently downloading, so we can show a spinner on that button only.
+  const [downloadingId, setDownloadingId] = useState(null);
+
   useEffect(() => {
     const fetchImages = async () => {
       try {
         setLoading(true);
-
         const response = await api.get("/image/getallimg");
-
-        console.log("bnvcvjwgy32ihm,....bdwutug....cbnwegk....", response.data);
 
         const formattedImages = response.data.msg.map((img) => ({
           id: img._id,
@@ -43,7 +55,11 @@ function Gallery({ user, setUser }) {
 
         setImages(formattedImages);
       } catch (error) {
-        console.log(error);
+        console.error(error);
+        showToast(
+          "error",
+          "Couldn't load your images. Please sign in or refresh.",
+        );
       } finally {
         setLoading(false);
       }
@@ -52,26 +68,86 @@ function Gallery({ user, setUser }) {
     fetchImages();
   }, []);
 
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast(null), 3200);
+  };
+
   const handleCopy = async (id, url) => {
     try {
       await navigator.clipboard.writeText(url);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 1400);
     } catch {
-      console.log("Copy failed");
+      showToast("error", "Couldn't copy the URL.");
     }
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Delete this image?")) return;
-    setImages((prev) => prev.filter((img) => img.id !== id));
-    if (selected?.id === id) setSelected(null);
+  // Fetches the image as a blob and triggers a real file download (rather than
+  // opening it in a new tab, which is what a plain <a href> would do for images).
+  const handleDownload = async (img) => {
+    if (downloadingId) return;
+    setDownloadingId(img.id);
+    try {
+      const res = await fetch(img.imageUrl);
+      if (!res.ok) throw new Error("Network response was not ok");
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const ext = blob.type?.split("/")?.[1] || "jpg";
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${img.name}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error(error);
+      showToast("error", "Couldn't download the image.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  // Opens the themed confirm modal instead of window.confirm().
+  const requestDelete = (img) => {
+    if (deletingId) return; // a deletion is already running — ignore clicks elsewhere
+    setConfirmTarget(img);
+  };
+
+  const cancelDelete = () => setConfirmTarget(null);
+
+  const confirmDelete = async () => {
+    const img = confirmTarget;
+    if (!img) return;
+    setConfirmTarget(null);
+    setDeletingId(img.generatedCode);
+
+    try {
+      await api.post(`/image/delete/${img.generatedCode}`);
+      setImages((prev) =>
+        prev.filter((i) => i.generatedCode !== img.generatedCode),
+      );
+      if (selected?.generatedCode === img.generatedCode) setSelected(null);
+      showToast("success", `Deleted ${img.name}.`);
+    } catch (error) {
+      console.error(error);
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to delete image.",
+      );
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleEdit = (img) => {
+    if (deletingId) return; // avoid navigating away mid-delete
     navigate("/editimage", { state: { image: img } });
-    console.log("Navigate to edit page:", img);
   };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#04060c] flex items-center justify-center text-cyan-300">
@@ -79,10 +155,11 @@ function Gallery({ user, setUser }) {
       </div>
     );
   }
+
   return (
     <div className="gallery-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
         .gallery-root {
           min-height: 100vh;
@@ -102,7 +179,7 @@ function Gallery({ user, setUser }) {
         }
         .orb { position: fixed; pointer-events: none; border-radius: 50%; filter: blur(130px); z-index: 0; }
         .orb-1 { width: 600px; height: 600px; background: rgba(14,165,233,0.07); top: -200px; left: -200px; }
-        .orb-2 { width: 500px; height: 500px; background: rgba(99,102,241,0.05); bottom: -200px; right: -150px; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(168,85,247,0.06); bottom: -200px; right: -150px; }
 
         /* ── page ── */
         .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 110px 24px 80px; }
@@ -125,12 +202,11 @@ function Gallery({ user, setUser }) {
         .header-bar::before {
           content: '';
           position: absolute; top: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(56,189,248,0.35), transparent);
+          background: linear-gradient(90deg, transparent, rgba(56,189,248,0.4), rgba(192,132,252,0.3), transparent);
         }
 
-        .header-left {}
         .header-eyebrow {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
           letter-spacing: 0.18em;
           color: #38bdf8;
@@ -143,7 +219,7 @@ function Gallery({ user, setUser }) {
           margin: 0 0 2px;
         }
         .header-sub {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
           font-weight: 300;
           color: rgba(232,234,240,0.35);
@@ -161,13 +237,14 @@ function Gallery({ user, setUser }) {
           background: rgba(56,189,248,0.05);
         }
         .count-num {
+          font-family: 'JetBrains Mono', monospace;
           font-size: 22px;
-          font-weight: 700;
+          font-weight: 600;
           color: #7dd3fc;
           line-height: 1;
         }
         .count-label {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
           letter-spacing: 0.1em;
           color: rgba(232,234,240,0.35);
@@ -197,10 +274,7 @@ function Gallery({ user, setUser }) {
         .img-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 2px;
-          background: rgba(255,255,255,0.04);
-          border-radius: 16px;
-          overflow: hidden;
+          gap: 14px;
         }
         @media (max-width: 900px) { .img-grid { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 560px) { .img-grid { grid-template-columns: 1fr; } }
@@ -211,6 +285,14 @@ function Gallery({ user, setUser }) {
           overflow: hidden;
           cursor: pointer;
           aspect-ratio: 4/3;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.06);
+          transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .img-card:hover {
+          border-color: rgba(192,132,252,0.35);
+          box-shadow: 0 10px 32px rgba(168,85,247,0.16), 0 0 0 1px rgba(56,189,248,0.12);
+          transform: translateY(-2px);
         }
         .img-card img {
           width: 100%; height: 100%;
@@ -220,14 +302,18 @@ function Gallery({ user, setUser }) {
         }
         .img-card:hover img {
           transform: scale(1.06);
-          filter: brightness(0.45);
+          filter: brightness(0.42);
+        }
+        .img-card.is-deleting img {
+          transform: scale(1.02);
+          filter: brightness(0.25) saturate(0.4);
         }
 
         /* index badge */
         .img-index {
           position: absolute;
           top: 10px; left: 12px;
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
           letter-spacing: 0.08em;
           color: rgba(255,255,255,0.3);
@@ -247,12 +333,14 @@ function Gallery({ user, setUser }) {
           z-index: 3;
         }
         .img-card:hover .img-overlay { opacity: 1; }
+        .img-card.is-deleting .img-overlay { opacity: 0; }
 
+        /* top-right icon row: quick glance actions only — preview, download, delete */
         .overlay-top { display: flex; justify-content: flex-end; gap: 6px; }
 
         .ov-btn {
           width: 32px; height: 32px;
-          border-radius: 6px;
+          border-radius: 7px;
           border: 1px solid rgba(255,255,255,0.12);
           background: rgba(0,0,0,0.55);
           color: rgba(255,255,255,0.75);
@@ -262,48 +350,69 @@ function Gallery({ user, setUser }) {
           backdrop-filter: blur(6px);
         }
         .ov-btn:hover { background: rgba(56,189,248,0.25); border-color: rgba(56,189,248,0.45); color: #fff; }
+        .ov-btn.accent:hover { background: rgba(192,132,252,0.25); border-color: rgba(192,132,252,0.5); color: #f0d9fc; }
         .ov-btn.danger:hover { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.45); color: #fca5a5; }
+        .ov-btn:disabled, .act-btn:disabled, .lbtn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
 
-        .overlay-bottom {}
         .img-name {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
-          color: rgba(255,255,255,0.5);
+          color: rgba(255,255,255,0.55);
           margin-bottom: 8px;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.04em;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .overlay-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+        /* bottom row: copy + edit, the labeled primary actions (download moved to icon row to avoid duplicating edit) */
+        .overlay-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 
         .act-btn {
-          padding: 6px 0;
-          border-radius: 5px;
+          padding: 7px 0;
+          border-radius: 6px;
           border: 1px solid rgba(255,255,255,0.1);
           background: rgba(0,0,0,0.5);
           color: rgba(255,255,255,0.65);
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.04em;
           cursor: pointer;
           transition: all 0.2s;
           backdrop-filter: blur(6px);
           text-align: center;
         }
-        .act-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .act-btn:hover { background: rgba(192,132,252,0.18); border-color: rgba(192,132,252,0.35); color: #fff; }
         .act-btn.copy-active { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.35); color: #86efac; }
-        .act-btn.del { border-color: rgba(239,68,68,0.2); color: rgba(252,165,165,0.7); }
-        .act-btn.del:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+
+        /* deleting overlay — replaces the hover overlay entirely while active */
+        .deleting-overlay {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 10px;
+          background: rgba(4,6,12,0.72);
+          backdrop-filter: blur(3px);
+          z-index: 4;
+          animation: fadeIn 0.15s ease;
+          border-radius: 14px;
+        }
+        .deleting-overlay span {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+          color: rgba(252,165,165,0.85);
+        }
+        .spin { animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ── LIST VIEW ── */
         .img-list {
           display: flex;
           flex-direction: column;
-          gap: 2px;
-          background: rgba(255,255,255,0.04);
-          border-radius: 16px;
-          overflow: hidden;
+          gap: 6px;
         }
 
         .list-row {
@@ -312,19 +421,23 @@ function Gallery({ user, setUser }) {
           gap: 16px;
           background: #07090f;
           padding: 12px 16px;
-          transition: background 0.2s;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.05);
+          transition: background 0.2s, opacity 0.2s, border-color 0.25s;
           position: relative;
           overflow: hidden;
         }
         .list-row::after {
           content: '';
           position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-          background: #38bdf8;
+          background: linear-gradient(180deg, #38bdf8, #c084fc);
           transform: scaleY(0);
           transition: transform 0.2s;
         }
-        .list-row:hover { background: rgba(56,189,248,0.04); }
+        .list-row:hover { background: rgba(192,132,252,0.04); border-color: rgba(192,132,252,0.18); }
         .list-row:hover::after { transform: scaleY(1); }
+        .list-row.is-deleting { background: rgba(239,68,68,0.05); opacity: 0.75; }
+        .list-row.is-deleting::after { background: #f87171; transform: scaleY(1); }
 
         .list-thumb {
           width: 56px; height: 42px;
@@ -336,14 +449,23 @@ function Gallery({ user, setUser }) {
 
         .list-info { flex: 1; min-width: 0; }
         .list-name {
+          font-family: 'JetBrains Mono', monospace;
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 500;
           letter-spacing: 0.01em;
           margin-bottom: 2px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .list-deleting-tag {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.08em;
+          color: #f87171;
+          display: inline-flex; align-items: center; gap: 4px;
         }
         .list-url {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
           color: rgba(232,234,240,0.3);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -360,15 +482,13 @@ function Gallery({ user, setUser }) {
           display: flex; align-items: center; justify-content: center;
           transition: all 0.2s;
         }
-        .lbtn:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.3); color: #38bdf8; }
+        .lbtn:hover { background: rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.3); color: #d8b4fe; }
         .lbtn.del:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #f87171; }
         .lbtn.copied { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.3); color: #86efac; }
+        .lbtn.is-active-delete { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #f87171; }
 
         /* ── EMPTY STATE ── */
-        .empty {
-          text-align: center;
-          padding: 80px 24px;
-        }
+        .empty { text-align: center; padding: 80px 24px; }
         .empty-icon {
           width: 60px; height: 60px;
           margin: 0 auto 20px;
@@ -380,7 +500,7 @@ function Gallery({ user, setUser }) {
         }
         .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
         .empty-sub {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 12px;
           color: rgba(232,234,240,0.35);
         }
@@ -397,19 +517,23 @@ function Gallery({ user, setUser }) {
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* sizes to the image instead of always stretching to a fixed max-width */
         .lightbox-inner {
           position: relative;
-          max-width: 900px;
-          width: 100%;
+          max-width: min(640px, 90vw);
+          width: fit-content;
           animation: scaleIn 0.2s ease;
         }
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .lightbox-img {
-          width: 100%;
+          max-width: min(640px, 90vw);
+          max-height: 70vh;
+          width: auto;
+          height: auto;
           border-radius: 12px;
           display: block;
-          border: 1px solid rgba(255,255,255,0.07);
+          border: 1px solid rgba(192,132,252,0.15);
         }
 
         .lightbox-close {
@@ -423,6 +547,7 @@ function Gallery({ user, setUser }) {
           cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.2s;
+          z-index: 5;
         }
         .lightbox-close:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.35); color: #fca5a5; }
 
@@ -430,28 +555,33 @@ function Gallery({ user, setUser }) {
           margin-top: 14px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          gap: 10px;
           padding: 12px 16px;
           background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
+          border: 1px solid rgba(192,132,252,0.1);
           border-radius: 8px;
         }
-        .lb-name { font-size: 13px; font-weight: 600; }
+        .lb-name {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
         .lb-url {
-          font-family: 'DM Mono', monospace;
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
           color: rgba(232,234,240,0.35);
           flex: 1;
           text-align: center;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-          padding: 0 12px;
+          padding: 0 8px;
         }
-        .lb-copy {
-          font-family: 'DM Mono', monospace;
+        .lb-btn {
+          font-family: 'JetBrains Mono', monospace;
           font-size: 10px;
-          letter-spacing: 0.06em;
-          padding: 6px 14px;
-          border-radius: 5px;
+          letter-spacing: 0.05em;
+          padding: 6px 13px;
+          border-radius: 6px;
           border: 1px solid rgba(56,189,248,0.25);
           background: rgba(56,189,248,0.07);
           color: #7dd3fc;
@@ -459,16 +589,104 @@ function Gallery({ user, setUser }) {
           transition: all 0.2s;
           white-space: nowrap;
           flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
         }
-        .lb-copy:hover { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); }
-        .lb-copy.copied { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.3); color: #86efac; }
+        .lb-btn:hover { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.45); }
+        .lb-btn.copied { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.3); color: #86efac; }
+        .lb-btn.download { border-color: rgba(192,132,252,0.3); background: rgba(192,132,252,0.08); color: #e9d5ff; }
+        .lb-btn.download:hover { background: rgba(192,132,252,0.18); border-color: rgba(192,132,252,0.5); }
+        .lb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── CONFIRM MODAL ── */
+        .confirm-bg {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.75);
+          backdrop-filter: blur(6px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 24px;
+          z-index: 60;
+          animation: fadeIn 0.15s ease;
+        }
+        .confirm-card {
+          width: 100%; max-width: 380px;
+          background: #0a0d16;
+          border: 1px solid rgba(239,68,68,0.25);
+          border-radius: 14px;
+          padding: 24px;
+          animation: scaleIn 0.18s ease;
+        }
+        .confirm-icon {
+          width: 44px; height: 44px;
+          border-radius: 10px;
+          background: rgba(239,68,68,0.1);
+          border: 1px solid rgba(239,68,68,0.25);
+          display: flex; align-items: center; justify-content: center;
+          color: #f87171;
+          margin-bottom: 14px;
+        }
+        .confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .confirm-body {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          color: rgba(232,234,240,0.45);
+          line-height: 1.6;
+          margin-bottom: 20px;
+          word-break: break-all;
+        }
+        .confirm-actions { display: flex; gap: 10px; }
+        .confirm-btn {
+          flex: 1;
+          padding: 10px 0;
+          border-radius: 8px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.05em;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.03);
+          color: rgba(232,234,240,0.6);
+        }
+        .confirm-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .confirm-btn.danger {
+          border-color: rgba(239,68,68,0.35);
+          background: rgba(239,68,68,0.12);
+          color: #fca5a5;
+        }
+        .confirm-btn.danger:hover { background: rgba(239,68,68,0.22); border-color: rgba(239,68,68,0.5); }
+
+        /* ── TOAST ── */
+        .toast {
+          position: fixed;
+          bottom: 24px; right: 24px;
+          z-index: 70;
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          letter-spacing: 0.02em;
+          max-width: 360px;
+          animation: toastIn 0.25s ease;
+          backdrop-filter: blur(8px);
+        }
+        .toast.success { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+        .toast.error { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+        @keyframes toastIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       `}</style>
 
       <div className="grid-bg" />
       <div className="orb orb-1" />
       <div className="orb orb-2" />
 
-      <Navbar user={user} setUser={setUser} />
+      <Navbar
+        user={user}
+        setUser={setUser}
+        onLogOut={onLogOut}
+        setOnLogOut={setOnLogOut}
+      />
 
       <div className="page">
         {/* ── HEADER ── */}
@@ -512,121 +730,179 @@ function Gallery({ user, setUser }) {
         {/* ── GRID VIEW ── */}
         {view === "grid" && images.length > 0 && (
           <div className="img-grid">
-            {images.map((img, i) => (
-              <div key={img.id} className="img-card">
-                <img src={img.image} alt={img.name} loading="lazy" />
+            {images.map((img, i) => {
+              const isThisDeleting = deletingId === img.generatedCode;
+              const deletingSomethingElse = !!deletingId && !isThisDeleting;
+              const isThisDownloading = downloadingId === img.id;
 
-                <span className="img-index">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
+              return (
+                <div
+                  key={img.id}
+                  className={`img-card ${isThisDeleting ? "is-deleting" : ""}`}
+                >
+                  <img src={img.image} alt={img.name} loading="lazy" />
 
-                <div className="img-overlay">
-                  <div className="overlay-top">
-                    <button
-                      className="ov-btn"
-                      onClick={() => setSelected(img)}
-                      title="Preview"
-                    >
-                      <Eye size={14} />
-                    </button>
-                    <button
-                      className="ov-btn"
-                      onClick={() => handleEdit(img)}
-                      title="Edit"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      className="ov-btn danger"
-                      onClick={() => handleDelete(img.id)}
-                      title="Delete"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  <span className="img-index">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
 
-                  <div className="overlay-bottom">
-                    <p className="img-name">{img.name}</p>
-                    <div className="overlay-actions">
+                  {isThisDeleting && (
+                    <div className="deleting-overlay">
+                      <Loader2 size={22} className="spin" color="#f87171" />
+                      <span>DELETING…</span>
+                    </div>
+                  )}
+
+                  <div className="img-overlay">
+                    <div className="overlay-top">
                       <button
-                        className={`act-btn ${copiedId === img.id ? "copy-active" : ""}`}
-                        onClick={() => handleCopy(img.id, img.imageUrl)}
+                        className="ov-btn"
+                        onClick={() => setSelected(img)}
+                        title="Preview"
+                        disabled={deletingSomethingElse}
                       >
-                        {copiedId === img.id ? "✓ copied" : "copy url"}
+                        <Eye size={14} />
                       </button>
                       <button
-                        className="act-btn"
-                        onClick={() => handleEdit(img)}
+                        className="ov-btn accent"
+                        onClick={() => handleDownload(img)}
+                        title="Download"
+                        disabled={deletingSomethingElse || isThisDownloading}
                       >
-                        edit
+                        {isThisDownloading ? (
+                          <Loader2 size={14} className="spin" />
+                        ) : (
+                          <Download size={14} />
+                        )}
                       </button>
                       <button
-                        className="act-btn del"
-                        onClick={() => handleDelete(img.id)}
+                        className="ov-btn danger"
+                        onClick={() => requestDelete(img)}
+                        title="Delete"
+                        disabled={!!deletingId}
                       >
-                        delete
+                        <Trash2 size={14} />
                       </button>
+                    </div>
+
+                    <div className="overlay-bottom">
+                      <p className="img-name">{img.name}</p>
+                      <div className="overlay-actions">
+                        <button
+                          className={`act-btn ${copiedId === img.id ? "copy-active" : ""}`}
+                          onClick={() => handleCopy(img.id, img.imageUrl)}
+                          disabled={deletingSomethingElse}
+                        >
+                          {copiedId === img.id ? "✓ copied" : "copy url"}
+                        </button>
+                        <button
+                          className="act-btn"
+                          onClick={() => handleEdit(img)}
+                          disabled={!!deletingId}
+                        >
+                          edit
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {/* ── LIST VIEW ── */}
         {view === "list" && images.length > 0 && (
           <div className="img-list">
-            {images.map((img) => (
-              <div key={img.id} className="list-row">
-                <img
-                  className="list-thumb"
-                  src={img.image}
-                  alt={img.name}
-                  loading="lazy"
-                />
+            {images.map((img) => {
+              const isThisDeleting = deletingId === img.generatedCode;
+              const deletingSomethingElse = !!deletingId && !isThisDeleting;
+              const isThisDownloading = downloadingId === img.id;
 
-                <div className="list-info">
-                  <div className="list-name">{img.name}</div>
-                  <div className="list-url">{img.imageUrl}</div>
-                </div>
+              return (
+                <div
+                  key={img.id}
+                  className={`list-row ${isThisDeleting ? "is-deleting" : ""}`}
+                >
+                  <img
+                    className="list-thumb"
+                    src={img.image}
+                    alt={img.name}
+                    loading="lazy"
+                  />
 
-                <div className="list-actions">
-                  <button
-                    className="lbtn"
-                    onClick={() => setSelected(img)}
-                    title="Preview"
-                  >
-                    <Eye size={13} />
-                  </button>
-                  <button
-                    className={`lbtn ${copiedId === img.id ? "copied" : ""}`}
-                    onClick={() => handleCopy(img.id, img.imageUrl)}
-                    title="Copy URL"
-                  >
-                    {copiedId === img.id ? (
-                      <Check size={13} />
-                    ) : (
-                      <Copy size={13} />
-                    )}
-                  </button>
-                  <button
-                    className="lbtn"
-                    onClick={() => handleEdit(img)}
-                    title="Edit"
-                  >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    className="lbtn del"
-                    onClick={() => handleDelete(img.id)}
-                    title="Delete"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <div className="list-info">
+                    <div className="list-name">
+                      {img.name}
+                      {isThisDeleting && (
+                        <span className="list-deleting-tag">
+                          <Loader2 size={11} className="spin" />
+                          deleting…
+                        </span>
+                      )}
+                    </div>
+                    <div className="list-url">
+                      http://localhost:8000/fetch/{img.generatedCode}
+                    </div>
+                  </div>
+
+                  <div className="list-actions">
+                    <button
+                      className="lbtn"
+                      onClick={() => setSelected(img)}
+                      title="Preview"
+                      disabled={deletingSomethingElse}
+                    >
+                      <Eye size={13} />
+                    </button>
+                    <button
+                      className={`lbtn ${copiedId === img.id ? "copied" : ""}`}
+                      onClick={() => handleCopy(img.id, img.imageUrl)}
+                      title="Copy URL"
+                      disabled={deletingSomethingElse}
+                    >
+                      {copiedId === img.id ? (
+                        <Check size={13} />
+                      ) : (
+                        <Copy size={13} />
+                      )}
+                    </button>
+                    <button
+                      className="lbtn"
+                      onClick={() => handleDownload(img)}
+                      title="Download"
+                      disabled={deletingSomethingElse || isThisDownloading}
+                    >
+                      {isThisDownloading ? (
+                        <Loader2 size={13} className="spin" />
+                      ) : (
+                        <Download size={13} />
+                      )}
+                    </button>
+                    <button
+                      className="lbtn"
+                      onClick={() => handleEdit(img)}
+                      title="Edit"
+                      disabled={!!deletingId}
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      className={`lbtn del ${isThisDeleting ? "is-active-delete" : ""}`}
+                      onClick={() => requestDelete(img)}
+                      title="Delete"
+                      disabled={!!deletingId}
+                    >
+                      {isThisDeleting ? (
+                        <Loader2 size={13} className="spin" />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -649,6 +925,7 @@ function Gallery({ user, setUser }) {
             <button
               className="lightbox-close"
               onClick={() => setSelected(null)}
+              title="Close"
             >
               <X size={15} />
             </button>
@@ -663,13 +940,70 @@ function Gallery({ user, setUser }) {
               <span className="lb-name">{selected.name}</span>
               <span className="lb-url">{selected.imageUrl}</span>
               <button
-                className={`lb-copy ${copiedId === selected.id ? "copied" : ""}`}
+                className="lb-btn download"
+                onClick={() => handleDownload(selected)}
+                disabled={downloadingId === selected.id}
+                title="Download"
+              >
+                {downloadingId === selected.id ? (
+                  <Loader2 size={12} className="spin" />
+                ) : (
+                  <Download size={12} />
+                )}
+                download
+              </button>
+              <button
+                className={`lb-btn ${copiedId === selected.id ? "copied" : ""}`}
                 onClick={() => handleCopy(selected.id, selected.imageUrl)}
               >
-                {copiedId === selected.id ? "✓ copied" : "copy url"}
+                {copiedId === selected.id ? (
+                  <>
+                    <Check size={12} /> copied
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} /> copy url
+                  </>
+                )}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── CONFIRM DELETE MODAL ── */}
+      {confirmTarget && (
+        <div className="confirm-bg" onClick={cancelDelete}>
+          <div className="confirm-card" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">
+              <AlertTriangle size={20} />
+            </div>
+            <h3 className="confirm-title">Delete this image?</h3>
+            <p className="confirm-body">
+              {confirmTarget.name} will be permanently removed. This can't be
+              undone.
+            </p>
+            <div className="confirm-actions">
+              <button className="confirm-btn" onClick={cancelDelete}>
+                Cancel
+              </button>
+              <button className="confirm-btn danger" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST ── */}
+      {toast && (
+        <div className={`toast ${toast.type}`}>
+          {toast.type === "success" ? (
+            <CheckCircle2 size={15} />
+          ) : (
+            <AlertTriangle size={15} />
+          )}
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

@@ -3,10 +3,12 @@ import { nanoid } from "nanoid";
 import {
   uploadOnCloudinar,
   uploadBufferDataToCloudinary,
+  deleteFromCloudinary,
 } from "../Util/cloudinary.config.js";
 import {
   getimagerediscache,
   setimagerediscache,
+  deleteimagerediscache,
 } from "../redis.cache/image.redis.cache.js";
 import { processImgae } from "../Util/python.service.config.js";
 
@@ -113,6 +115,7 @@ export const transformgetimageservice = async (data) => {
       imageInfo.originalUrl,
       transformingparameter,
     );
+    console.log("Hyy res from python", responce);
 
     if (!responce || responce.length === 0) {
       throw new Error("Invalid image from Python");
@@ -127,6 +130,7 @@ export const transformgetimageservice = async (data) => {
       error.statusCode = 500;
       throw error;
     }
+    console.log("Hyy res from cloudinary", cloudinaryRes);
 
     const newimage = await Imagedb.create({
       originalUrl: cloudinaryRes.secure_url,
@@ -138,9 +142,20 @@ export const transformgetimageservice = async (data) => {
         height: cloudinaryRes.height,
         width: cloudinaryRes.width,
       },
+
       bytes: cloudinaryRes.bytes,
     });
-    return { url: generatedimageUrl, code: imageCode, image: newimage };
+
+    console.log("hyyy thi sis the transomr image res", newimage);
+
+    return {
+      url: generatedimageUrl,
+      code: imageCode,
+      image: newimage,
+      height: cloudinaryRes.height,
+      width: cloudinaryRes.width,
+      format: cloudinaryRes.format,
+    };
   } catch (error) {
     throw error;
   }
@@ -153,6 +168,7 @@ export const getallimageservice = async (req) => {
     const error = new Error(
       "Can not get the image. Please try after sometime ",
     );
+    
     error.statuscode = 402;
     throw error;
   }
@@ -160,4 +176,24 @@ export const getallimageservice = async (req) => {
   console.log("hyy image ARRAY IS HERE ....", img_arr);
 
   return img_arr;
+};
+
+export const removeimageservice = async (imageCode) => {
+  const image = await Imagedb.findOne({ generatedCode: imageCode });
+
+  if (!image) {
+    throw new Error("Image not found");
+  }
+
+  // deleting image from cloudinary
+  const cloudinaryRes = await deleteFromCloudinary(image.publicId);
+
+  await Imagedb.deleteOne({ generatedCode: image.publicId });
+
+  if (!cloudinaryRes || cloudinaryRes.result !== "ok") {
+    throw new Error("Cloudinary deletion failed");
+  }
+
+  await deleteimagerediscache(imageCode);
+  return true;
 };

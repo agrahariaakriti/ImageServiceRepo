@@ -69,7 +69,7 @@ function Register() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; }
 
         .reg-root {
           min-height: 100vh;
@@ -358,7 +358,7 @@ function Register() {
                     .map(({ name, type, placeholder, icon: Icon }) => (
                       <div
                         key={name}
-                        className={`field-wrap ${focused === name ? "is-focused" : ""} ${forma[name] ? "has-value" : ""}`}
+                        className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
                       >
                         <span className="field-icon">
                           <Icon size={13} />

@@ -7,6 +7,7 @@ import {
   gettransformimagecontroller,
   getJobStatusController,
   transformimagepostcontroller,
+  removeimagecontroller,
 } from "../Controllers/image.controller.js";
 export const imageroute = Router();
 
@@ -16,7 +17,7 @@ imageroute.use((req, res, next) => {
 });
 imageroute
   .route("/upload")
-  .post(   authmiddleware, upload.single("file"), uploadimagecontroller);
+  .post(authmiddleware, upload.single("file"), uploadimagecontroller);
 
 imageroute
   .route("/transformimage/:imageCode")
@@ -32,3 +33,5 @@ imageroute.route("/job-status/:jobId").get((req, res, next) => {
   console.log("AAKRITI .....Hyy in the transform image route middleware");
   next();
 }, getJobStatusController);
+
+imageroute.route("/delete/:jobId").post(authmiddleware, removeimagecontroller);

@@ -24,3 +24,10 @@ export const setimagerediscache = async (imageCode, imageInfo) => {
     },
   );
 };
+
+export const deleteimagerediscache = async (imageCode) => {
+  const key = `imageCode:${imageCode}`;
+  await redis.del(key);
+
+  return 
+};

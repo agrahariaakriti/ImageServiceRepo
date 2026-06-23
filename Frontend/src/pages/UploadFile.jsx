@@ -34,7 +34,7 @@ const formatBytes = (b) =>
     : `${(b / 1024).toFixed(1)} KB`;
 
 // ─── component ─────────────────────────────────────────────────────────────
-export function UploadImage({ user, setUser }) {
+export function UploadImage({ user, setUser, onLogOut, setOnLogOut }) {
   const navigate = useNavigate();
 
   const [file, setFile] = useState(null); // File object
@@ -92,26 +92,37 @@ export function UploadImage({ user, setUser }) {
       setErrMsg("");
 
       const form = new FormData();
-      form.append("image", file);
-
-      // const res = await api.post("/image/upload", form, {
-      //   headers: { "Content-Type": "multipart/form-data" },
-      //   onUploadProgress: (e) => {
-      //     if (e.total) setProgress(Math.round((e.loaded / e.total) * 100));
-      //   },
-      // });
+      form.append("file", file);
+      const res = await api.post("/image/upload", form, {
+        onUploadProgress: (e) => {
+          if (e.total) setProgress(Math.round((e.loaded / e.total) * 100));
+        },
+      });
 
       setProgress(100);
       setPhase("done");
 
-      // short pause so user sees 100 % before redirect
       setTimeout(() => {
         navigate("/gallery");
       }, 1200);
     } catch (err) {
-      console.log("Hyy ", err);
+      const status = err.response?.status;
+      const backendMsg = err.response?.data?.message;
 
-      setErrMsg(err.response?.data?.message || "Upload failed. Try again.");
+      let message;
+      if (status === 401 || status === 403) {
+        message = "You're not signed in. Please log in to upload images.";
+      } else if (!err.response) {
+        message = "Network error. Check your connection and try again.";
+      } else if (status === 413) {
+        message = backendMsg || "File too large for the server to accept.";
+      } else if (status >= 500) {
+        message = backendMsg || "Server error. Please try again shortly.";
+      } else {
+        message = backendMsg || `Upload failed (${status}). Try again.`;
+      }
+
+      setErrMsg(message);
       setPhase("error");
     }
   };
@@ -130,10 +141,14 @@ export function UploadImage({ user, setUser }) {
 
   return (
     <div className="min-h-screen bg-[#05070d] text-white font-mono">
-      <Navbar user={user} setUser={setUser} />
+      <Navbar
+        user={user}
+        setUser={setUser}
+        onLogOut={onLogOut}
+        setOnLogOut={setOnLogOut}
+      />
 
       <div className="pt-20 px-6 pb-16 max-w-[1000px] mx-auto">
-        {/* ── breadcrumb ── */}
         <div className="flex items-center gap-2 mb-6 text-xs text-white/30">
           <span
             className="hover:text-white/60 cursor-pointer transition"
@@ -145,7 +160,6 @@ export function UploadImage({ user, setUser }) {
           <span className="text-cyan-400">Upload</span>
         </div>
 
-        {/* ── page header ── */}
         <div className="mb-8">
           <h1 className="text-lg font-semibold text-white/80 tracking-tight">
             Upload Image
@@ -156,9 +170,7 @@ export function UploadImage({ user, setUser }) {
           </p>
         </div>
 
-        {/* ── main card ── */}
         <div className="rounded-2xl border border-white/5 bg-[#0b0f1a] overflow-hidden">
-          {/* card topbar (matches EditImage canvas bar) */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-[#0b0f1a]">
             <div className="flex items-center gap-2 text-xs text-white/40">
               <FileImage size={12} />
@@ -187,10 +199,8 @@ export function UploadImage({ user, setUser }) {
             </div>
           </div>
 
-          {/* ── drop zone / preview area ── */}
           <div className="p-6">
             {!file ? (
-              /* empty drop zone */
               <div
                 {...getRootProps()}
                 className={`
@@ -206,7 +216,6 @@ export function UploadImage({ user, setUser }) {
               >
                 <input {...getInputProps()} />
 
-                {/* icon */}
                 <div
                   className={`
                   w-16 h-16 rounded-2xl flex items-center justify-center mb-5 transition
@@ -221,7 +230,7 @@ export function UploadImage({ user, setUser }) {
                 </p>
                 <p className="text-xs text-white/25 mb-6">or</p>
 
-                <label
+                <span
                   className="
                   px-5 py-2.5 rounded-lg text-xs font-medium
                   bg-cyan-500/10 border border-cyan-500/20 text-cyan-300
@@ -230,17 +239,14 @@ export function UploadImage({ user, setUser }) {
                 "
                 >
                   Browse files
-                  <input {...getInputProps()} className="hidden" />
-                </label>
+                </span>
 
                 <p className="text-[10px] text-white/20 mt-5">
                   {ACCEPTED_LABEL} · up to {MAX_SIZE_MB} MB
                 </p>
               </div>
             ) : (
-              /* file chosen — preview + meta */
               <div className="grid grid-cols-[1fr_280px] gap-5">
-                {/* preview */}
                 <div
                   className="relative bg-black/30 rounded-xl border border-white/5 flex items-center justify-center overflow-hidden"
                   style={{ minHeight: 340 }}
@@ -251,7 +257,6 @@ export function UploadImage({ user, setUser }) {
                     className="max-h-[340px] max-w-full object-contain rounded-lg"
                   />
 
-                  {/* remove button */}
                   <button
                     onClick={reset}
                     className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 hover:border-white/30 transition"
@@ -259,7 +264,6 @@ export function UploadImage({ user, setUser }) {
                     <X size={13} />
                   </button>
 
-                  {/* uploading overlay */}
                   {busy && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 backdrop-blur-sm rounded-xl">
                       <Loader2
@@ -270,7 +274,6 @@ export function UploadImage({ user, setUser }) {
                     </div>
                   )}
 
-                  {/* done overlay */}
                   {phase === "done" && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 backdrop-blur-sm rounded-xl">
                       <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
@@ -283,9 +286,7 @@ export function UploadImage({ user, setUser }) {
                   )}
                 </div>
 
-                {/* right panel */}
                 <div className="flex flex-col gap-4">
-                  {/* file meta card */}
                   <div className="bg-black/30 rounded-xl border border-white/5 p-4 space-y-3">
                     <p className="text-[10px] text-white/25 uppercase tracking-widest">
                       File Info
@@ -302,7 +303,6 @@ export function UploadImage({ user, setUser }) {
                     )}
                   </div>
 
-                  {/* progress bar (only while uploading) */}
                   {busy && (
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-[10px] text-white/30">
@@ -318,7 +318,6 @@ export function UploadImage({ user, setUser }) {
                     </div>
                   )}
 
-                  {/* error */}
                   {phase === "error" && errMsg && (
                     <div className="flex items-start gap-2 text-red-400 text-xs bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2.5">
                       <AlertCircle size={12} className="mt-0.5 shrink-0" />
@@ -326,10 +325,8 @@ export function UploadImage({ user, setUser }) {
                     </div>
                   )}
 
-                  {/* spacer */}
                   <div className="flex-1" />
 
-                  {/* actions */}
                   <div className="space-y-2">
                     <button
                       onClick={handleUpload}
@@ -361,7 +358,6 @@ export function UploadImage({ user, setUser }) {
                       )}
                     </button>
 
-                    {/* replace file */}
                     {phase !== "done" && (
                       <label
                         className="
@@ -387,7 +383,6 @@ export function UploadImage({ user, setUser }) {
               </div>
             )}
 
-            {/* error when no file chosen yet */}
             {!file && errMsg && (
               <div className="flex items-center gap-2 text-red-400 text-xs mt-4 bg-red-500/5 border border-red-500/10 rounded-lg px-4 py-2.5">
                 <AlertCircle size={12} className="shrink-0" />
@@ -397,7 +392,6 @@ export function UploadImage({ user, setUser }) {
           </div>
         </div>
 
-        {/* ── gallery shortcut ── */}
         <button
           onClick={() => navigate("/gallery")}
           className="mt-4 flex items-center gap-2 text-xs text-white/25 hover:text-white/50 transition"
@@ -410,7 +404,6 @@ export function UploadImage({ user, setUser }) {
   );
 }
 
-// ─── sub-components ─────────────────────────────────────────────────────────
 function MetaRow({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-2">

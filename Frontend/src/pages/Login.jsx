@@ -2,14 +2,23 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { api } from "../stores/api.service.js";
 import { Link, useNavigate } from "react-router-dom";
-import { LogIn, Mail, Lock, AlertCircle, ArrowRight } from "lucide-react";
+import {
+  LogIn,
+  Mail,
+  Lock,
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import Navbar from "../components/Navbar";
 
-function Login({ setUser }) {
+function Login({ user, setUser, onLogOut, setOnLogOut }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [focused, setFocused] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,6 +39,7 @@ function Login({ setUser }) {
       setLoading(true);
       const response = await api.post("/users/signin", form);
       setUser(response.data);
+      setOnLogOut(false);
       navigate("/");
     } catch (error) {
       const message =
@@ -58,7 +68,7 @@ function Login({ setUser }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; }
 
         .login-root {
           min-height: 100vh;
@@ -183,6 +193,7 @@ function Login({ setUser }) {
           font-weight: 300;
           letter-spacing: 0.02em;
         }
+        .field-input.has-toggle { padding-right: 38px; }
         .field-input::placeholder {
           color: rgba(232,234,240,0.2);
           font-family: 'DM Mono', monospace;
@@ -191,6 +202,27 @@ function Login({ setUser }) {
         .field-input:-webkit-autofill {
           -webkit-box-shadow: 0 0 0 100px #030508 inset;
           -webkit-text-fill-color: #e8eaf0;
+        }
+
+        /* ── password visibility toggle ── */
+        .toggle-visibility-btn {
+          position: absolute;
+          right: 11px; top: 50%; transform: translateY(-50%);
+          background: none;
+          border: none;
+          padding: 4px;
+          margin: 0;
+          display: flex; align-items: center;
+          color: rgba(232,234,240,0.3);
+          cursor: pointer;
+          transition: color 0.2s;
+          line-height: 0;
+        }
+        .toggle-visibility-btn:hover { color: #7dd3fc; }
+        .toggle-visibility-btn:focus-visible {
+          outline: 1px solid rgba(56,189,248,0.5);
+          outline-offset: 2px;
+          border-radius: 4px;
         }
 
         /* ── forgot row ── */
@@ -303,7 +335,12 @@ function Login({ setUser }) {
       <div className="orb orb-1" />
       <div className="orb orb-2" />
 
-      <Navbar user={null} />
+      <Navbar
+        user={user}
+        setUser={setUser}
+        onLogOut={onLogOut}
+        setOnLogOut={setOnLogOut}
+      />
 
       <motion.div
         className="login-card"
@@ -341,27 +378,54 @@ function Login({ setUser }) {
 
             <form onSubmit={handleSubmit}>
               <div className="fields">
-                {fields.map(({ name, type, placeholder, icon: Icon }) => (
-                  <div
-                    key={name}
-                    className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
-                  >
-                    <span className="field-icon">
-                      <Icon size={13} />
-                    </span>
-                    <input
-                      className="field-input"
-                      type={type}
-                      name={name}
-                      placeholder={placeholder}
-                      value={form[name]}
-                      onChange={handleChange}
-                      onFocus={() => setFocused(name)}
-                      onBlur={() => setFocused("")}
-                      autoComplete="off"
-                    />
-                  </div>
-                ))}
+                {fields.map(({ name, type, placeholder, icon: Icon }) => {
+                  const isPassword = name === "password";
+                  const inputType = isPassword
+                    ? showPassword
+                      ? "text"
+                      : "password"
+                    : type;
+
+                  return (
+                    <div
+                      key={name}
+                      className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
+                    >
+                      <span className="field-icon">
+                        <Icon size={13} />
+                      </span>
+                      <input
+                        className={`field-input ${isPassword ? "has-toggle" : ""}`}
+                        type={inputType}
+                        name={name}
+                        placeholder={placeholder}
+                        value={form[name]}
+                        onChange={handleChange}
+                        onFocus={() => setFocused(name)}
+                        onBlur={() => setFocused("")}
+                        autoComplete="off"
+                      />
+                      {isPassword && (
+                        <button
+                          type="button"
+                          className="toggle-visibility-btn"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          aria-pressed={showPassword}
+                          tabIndex={0}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={14} />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="forgot-row">

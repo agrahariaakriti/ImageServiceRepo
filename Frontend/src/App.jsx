@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar.jsx";
 function App() {
   const [user, setUser] = useState(null);
+  const [onLogOut, setOnLogOut] = useState(true);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const refreshUser = async () => {
@@ -38,25 +39,82 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home user={user} setUser={setUser} />} />
+        <Route
+          path="/"
+          element={
+            <Home
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
+        />
         <Route
           path="/about"
-          element={<Connect user={user} setUser={setUser} />}
+          element={
+            <Connect
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
         />
         <Route path="/register" element={<Register />} />
-        <Route path="/uploadImage" element={<UploadImage />} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
+        <Route
+          path="/uploadImage"
+          element={
+            <UploadImage
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Login
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
+        />
         <Route
           path="/documentation"
-          element={<Documentation user={user} setUser={setUser} />}
+          element={
+            <Documentation
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
         />
         <Route
           path="/gallery"
-          element={<Gallery user={user} setUser={setUser} />}
+          element={
+            <Gallery
+              user={user}
+              setUser={setUser}
+              onLogOut={onLogOut}
+              setOnLogOut={setOnLogOut}
+            />
+          }
         />
         <Route
           path="/editimage"
-          element={<EditImage user={user} setUser={setUser} />}
+          element={
+            <EditImage
+              user={user}
+              setUser={setUser}
+              setOnLogOut={setOnLogOut}
+            />
+          }
         />
       </Routes>
     </>
