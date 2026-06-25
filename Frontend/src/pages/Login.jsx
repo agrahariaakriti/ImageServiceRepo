@@ -225,24 +225,6 @@ function Login({ user, setUser, onLogOut, setOnLogOut }) {
           border-radius: 4px;
         }
 
-        /* ── forgot row ── */
-        .forgot-row {
-          display: flex;
-          justify-content: flex-end;
-          margin-bottom: 16px;
-        }
-        .forgot-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
-          color: rgba(232,234,240,0.3);
-          letter-spacing: 0.03em;
-          transition: color 0.2s;
-          padding: 0;
-        }
-        .forgot-btn:hover { color: #7dd3fc; }
 
         /* ── error ── */
         .error-box {
@@ -426,12 +408,6 @@ function Login({ user, setUser, onLogOut, setOnLogOut }) {
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="forgot-row">
-                <button type="button" className="forgot-btn">
-                  Forgot Password?
-                </button>
               </div>
 
               <button type="submit" className="submit-btn" disabled={loading}>

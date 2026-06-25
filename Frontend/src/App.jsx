@@ -129,3 +129,5 @@ export default App;
 // {/* <Login /> */}
 // {/* <Documentation /> */}
 // {/* <Gallery /> */}
+
+// .............In the about section ..........in place of the written github and live Demo i want  github logo and same for live demo and why links are not working ??? and also add a bit of purple and pink shade into it

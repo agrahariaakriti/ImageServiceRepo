@@ -6,22 +6,29 @@ import { SiLeetcode } from "react-icons/si";
 function Connect({ user, setUser, onLogOut, setOnLogOut }) {
   const projects = [
     {
-      name: "ImageService",
-      desc: "Upload system with auth, compression, cloud storage, and optimized delivery pipeline.",
-      tech: ["Node", "Cloudinary", "Auth"],
+      name: "Image Processing Service",
+      desc: "Cloudinary-style image platform with async processing, Redis caching, and JWT auth.",
+      tech: ["Node.js", "FastAPI", "BullMQ", "Redis", "MongoDB", "Cloudinary"],
       num: "01",
+      github: "https://github.com/agrahariaakriti/ImageServiceRepo/",
     },
+
     {
-      name: "Expense Tracker",
-      desc: "Full-stack finance system with user auth, analytics, and persistent storage.",
-      tech: ["React", "Node", "MongoDB"],
+      name: "ShortURL",
+      desc: "High-performance URL shortener with Redis caching and secure JWT authentication.",
+      tech: ["React", "Node.js", "MongoDB", "Redis", "JWT", "Express"],
       num: "02",
+      github: "https://github.com/agrahariaakriti/SHORT_URL/tree/main",
+      live: "https://splendid-palmier-b3799c.netlify.app/",
     },
+
     {
-      name: "Task Manager API",
-      desc: "REST API with JWT auth, clean architecture, and scalable DB design.",
-      tech: ["Express", "JWT", "MongoDB"],
+      name: "VerifyX",
+      desc: "Email verification and authentication system with OTP and JWT sessions.",
+      tech: ["React", "Node.js", "MongoDB", "JWT", "Nodemailer", "Express"],
       num: "03",
+      github: "https://github.com/agrahariaakriti/Email_Verification",
+      live: "https://magnificent-palmier-39aef7.netlify.app/",
     },
   ];
 
@@ -117,6 +124,9 @@ function Connect({ user, setUser, onLogOut, setOnLogOut }) {
           background: #38bdf8;
         }
 
+
+
+
         .hero-name {
           font-size: clamp(52px, 9vw, 88px);
           font-weight: 800;
@@ -172,6 +182,25 @@ function Connect({ user, setUser, onLogOut, setOnLogOut }) {
           background: rgba(56,189,248,0.1);
         }
 
+
+
+        .proj-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.proj-link {
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64ffda;
+  transition: 0.3s;
+}
+
+.proj-link:hover {
+  opacity: 0.8;
+}
         /* ── divider ── */
         .divider {
           height: 1px;
@@ -549,12 +578,15 @@ function Connect({ user, setUser, onLogOut, setOnLogOut }) {
             {projects.map((p) => (
               <div key={p.name} className="proj-card">
                 <p className="proj-num">{p.num}</p>
+
                 <div className="proj-icon-row">
                   <FolderGit2 size={22} className="proj-icon" />
-                  <ArrowUpRight size={16} className="proj-arrow" />
                 </div>
+
                 <h3 className="proj-name">{p.name}</h3>
+
                 <p className="proj-desc">{p.desc}</p>
+
                 <div className="proj-tags">
                   {p.tech.map((t) => (
                     <span key={t} className="proj-tag">
@@ -562,40 +594,34 @@ function Connect({ user, setUser, onLogOut, setOnLogOut }) {
                     </span>
                   ))}
                 </div>
+
+                <div className="proj-links">
+                  <a
+                    href={p.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="proj-link"
+                  >
+                    GitHub
+                  </a>
+
+                  {p.live && (
+                    <a
+                      href={p.live}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="proj-link"
+                    >
+                      Live Demo
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </section>
 
         <div className="divider" />
-
-        {/* ── CONNECT ── */}
-        <section>
-          <div className="sec-header">
-            <span className="sec-num">03</span>
-            <h2 className="sec-title">Connect</h2>
-            <div className="sec-line" />
-          </div>
-
-          <div className="connect-grid">
-            {socials.map((item) => {
-              const Icon = item.icon;
-              return (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="social-card"
-                >
-                  <Icon size={22} className="social-icon" />
-                  <p className="social-label">{item.label}</p>
-                  <p className="social-sub">{item.sub}</p>
-                </a>
-              );
-            })}
-          </div>
-        </section>
 
         {/* ── FOOTER ── */}
         <div className="footer">

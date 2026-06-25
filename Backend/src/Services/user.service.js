@@ -168,9 +168,14 @@ export const refreshTokenGeneratorservice = async (req) => {
     throw error;
   }
   const accessToken = await generateaccesstoken(user);
+  const refreshToken = await generaterefreshtoken(user);
+
+  user.refreshToken = refreshToken;
+  await user.save();
 
   return {
     accessToken,
+    refreshToken,
     user: {
       user: user._id,
       username: user.username,

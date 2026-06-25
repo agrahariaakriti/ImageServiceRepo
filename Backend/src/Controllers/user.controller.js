@@ -89,6 +89,7 @@ export const refreshTokenGeneratorcontroller = async (req, res) => {
     return res
       .status(200)
       .cookie("accessToken", response.accessToken, options)
+      .cookie("refreshToken", response.refreshToken, options)
       .json({ message: "User login successfully", user: response.user });
   } catch (error) {
     return res
