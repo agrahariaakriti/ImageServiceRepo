@@ -4,12 +4,22 @@ import Navbar from "../components/Navbar";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { User, AtSign, Mail, Lock, UserPlus, ArrowRight } from "lucide-react";
+import {
+  User,
+  AtSign,
+  Mail,
+  Lock,
+  UserPlus,
+  ArrowRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 function Register() {
   const [focused, setFocused] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     username: "",
     fullname: "",
@@ -58,12 +68,19 @@ function Register() {
       setLoading(false);
     }
   };
+
   const fields = [
     { name: "username", type: "text", placeholder: "Username", icon: AtSign },
     { name: "fullname", type: "text", placeholder: "Full Name", icon: User },
     { name: "email", type: "email", placeholder: "Email Address", icon: Mail },
-    { name: "password", type: "password", placeholder: "Password", icon: Lock },
+    {
+      name: "password",
+      type: showPassword ? "text" : "password",
+      placeholder: "Password",
+      icon: Lock,
+    },
   ];
+
   return (
     <div className="reg-root">
       <style>{`
@@ -93,6 +110,8 @@ function Register() {
         .orb { position: fixed; pointer-events: none; border-radius: 50%; filter: blur(130px); z-index: 0; }
         .orb-1 { width: 600px; height: 600px; background: rgba(14,165,233,0.08); top: -250px; left: -200px; }
         .orb-2 { width: 500px; height: 500px; background: rgba(99,102,241,0.06); bottom: -200px; right: -150px; }
+        /* subtle pink orb */
+        .orb-3 { width: 400px; height: 400px; background: rgba(236,72,153,0.06); top: 30%; right: -100px; }
 
         /* ── card ── */
         .reg-card {
@@ -102,7 +121,7 @@ function Register() {
           max-width: 420px;
         }
 
-        /* top accent line */
+        /* top accent line — now includes a pink stop */
         .card-inner {
           background: rgba(255,255,255,0.02);
           border: 1px solid rgba(255,255,255,0.06);
@@ -113,7 +132,7 @@ function Register() {
         .card-inner::before {
           content: '';
           position: absolute; top: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(56,189,248,0.5), rgba(129,140,248,0.35), transparent);
+          background: linear-gradient(90deg, transparent, rgba(56,189,248,0.5), rgba(236,72,153,0.4), rgba(129,140,248,0.35), transparent);
         }
 
         /* ── header ── */
@@ -126,10 +145,10 @@ function Register() {
         .icon-wrap {
           width: 44px; height: 44px;
           border-radius: 10px;
-          background: rgba(56,189,248,0.08);
-          border: 1px solid rgba(56,189,248,0.2);
+          background: rgba(236,72,153,0.08);
+          border: 1px solid rgba(236,72,153,0.22);
           display: flex; align-items: center; justify-content: center;
-          color: #38bdf8;
+          color: #f472b6;
           margin: 0 auto 18px;
         }
 
@@ -165,17 +184,22 @@ function Register() {
         .field-wrap::before {
           content: '';
           position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-          background: #38bdf8;
+          background: linear-gradient(180deg, #38bdf8, #f472b6);
           transform: scaleY(0);
           transition: transform 0.2s;
           border-radius: 2px 0 0 2px;
         }
         .field-wrap.is-focused {
-          border-color: rgba(56,189,248,0.3);
-          box-shadow: 0 0 0 3px rgba(56,189,248,0.06);
+          border-color: rgba(244,114,182,0.28);
+          box-shadow: 0 0 0 3px rgba(244,114,182,0.06);
         }
         .field-wrap.is-focused::before { transform: scaleY(1); }
-        .field-wrap.has-value { border-color: rgba(56,189,248,0.15); }
+        .field-wrap.has-value { border-color: rgba(244,114,182,0.14); }
+
+        /* password field needs room for the eye toggle */
+        .field-wrap.has-toggle .field-input {
+          padding-right: 40px;
+        }
 
         .field-icon {
           position: absolute;
@@ -185,7 +209,7 @@ function Register() {
           pointer-events: none;
           display: flex; align-items: center;
         }
-        .field-wrap.is-focused .field-icon { color: #38bdf8; }
+        .field-wrap.is-focused .field-icon { color: #f472b6; }
 
         .field-input {
           width: 100%;
@@ -209,6 +233,23 @@ function Register() {
           -webkit-text-fill-color: #e8eaf0;
         }
 
+        /* ── password toggle btn ── */
+        .toggle-btn {
+          position: absolute;
+          right: 11px; top: 50%; transform: translateY(-50%);
+          background: none;
+          border: none;
+          padding: 3px;
+          cursor: pointer;
+          color: rgba(232,234,240,0.25);
+          display: flex; align-items: center; justify-content: center;
+          transition: color 0.2s;
+          border-radius: 4px;
+        }
+        .toggle-btn:hover { color: #f472b6; }
+        .field-wrap.is-focused .toggle-btn { color: rgba(232,234,240,0.45); }
+        .field-wrap.is-focused .toggle-btn:hover { color: #f472b6; }
+
         /* ── row labels ── */
         .field-row {
           display: grid;
@@ -216,14 +257,14 @@ function Register() {
           gap: 10px;
         }
 
-        /* ── submit btn ── */
+        /* ── submit btn — pink-tinted gradient ── */
         .submit-btn {
           width: 100%;
           padding: 13px;
           border-radius: 8px;
-          background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(129,140,248,0.1));
-          border: 1px solid rgba(56,189,248,0.3);
-          color: #7dd3fc;
+          background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(236,72,153,0.1), rgba(129,140,248,0.08));
+          border: 1px solid rgba(236,72,153,0.28);
+          color: #f9a8d4;
           font-family: 'Syne', sans-serif;
           font-size: 13px;
           font-weight: 700;
@@ -237,14 +278,14 @@ function Register() {
         .submit-btn::after {
           content: '';
           position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.06));
+          background: linear-gradient(135deg, rgba(56,189,248,0.06), rgba(236,72,153,0.08));
           opacity: 0;
           transition: opacity 0.25s;
         }
         .submit-btn:hover {
-          border-color: rgba(56,189,248,0.55);
+          border-color: rgba(236,72,153,0.5);
           transform: translateY(-1px);
-          box-shadow: 0 4px 20px rgba(56,189,248,0.1);
+          box-shadow: 0 4px 20px rgba(236,72,153,0.12);
         }
         .submit-btn:hover::after { opacity: 1; }
         .submit-btn:active { transform: translateY(0); }
@@ -263,12 +304,12 @@ function Register() {
           letter-spacing: 0.03em;
         }
         .footer-link {
-          color: #7dd3fc;
+          color: #f472b6;
           text-decoration: none;
           font-weight: 400;
           transition: color 0.2s;
         }
-        .footer-link:hover { color: #bae6fd; }
+        .footer-link:hover { color: #fbcfe8; }
 
         /* ── divider ── */
         .or-row {
@@ -297,12 +338,13 @@ function Register() {
           letter-spacing: 0.05em;
           display: flex; align-items: center; gap: 5px;
         }
-        .perk-dot { width: 4px; height: 4px; border-radius: 50%; background: #38bdf8; opacity: 0.6; }
+        .perk-dot { width: 4px; height: 4px; border-radius: 50%; background: #f472b6; opacity: 0.6; }
       `}</style>
 
       <div className="grid-bg" />
       <div className="orb orb-1" />
       <div className="orb orb-2" />
+      <div className="orb orb-3" />
 
       <Navbar user={null} />
 
@@ -321,10 +363,11 @@ function Register() {
             <h1 className="card-title">Create Account</h1>
             <p className="card-sub">Join ImageService and start building</p>
           </div>
+
           {error && (
             <div
               style={{
-                marginBottom: "15px",
+                margin: "0 32px",
                 padding: "12px",
                 borderRadius: "8px",
                 background: "rgba(239,68,68,0.12)",
@@ -332,11 +375,13 @@ function Register() {
                 color: "#f87171",
                 fontSize: "13px",
                 textAlign: "center",
+                fontFamily: "'DM Mono', monospace",
               }}
             >
               {error}
             </div>
           )}
+
           {/* ── FORM ── */}
           <div className="card-body">
             {/* perks */}
@@ -378,10 +423,10 @@ function Register() {
                     ))}
                 </div>
 
-                {/* email + password full width */}
-                {fields
-                  .slice(2)
-                  .map(({ name, type, placeholder, icon: Icon }) => (
+                {/* email — full width */}
+                {(() => {
+                  const { name, type, placeholder, icon: Icon } = fields[2];
+                  return (
                     <div
                       key={name}
                       className={`field-wrap ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
@@ -401,7 +446,49 @@ function Register() {
                         autoComplete="off"
                       />
                     </div>
-                  ))}
+                  );
+                })()}
+
+                {/* password — full width with toggle */}
+                {(() => {
+                  const { name, placeholder, icon: Icon } = fields[3];
+                  return (
+                    <div
+                      key={name}
+                      className={`field-wrap has-toggle ${focused === name ? "is-focused" : ""} ${form[name] ? "has-value" : ""}`}
+                    >
+                      <span className="field-icon">
+                        <Icon size={13} />
+                      </span>
+                      <input
+                        className="field-input"
+                        type={showPassword ? "text" : "password"}
+                        name={name}
+                        placeholder={placeholder}
+                        value={form[name]}
+                        onChange={handleChange}
+                        onFocus={() => setFocused(name)}
+                        onBlur={() => setFocused("")}
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        className="toggle-btn"
+                        onClick={() => setShowPassword((v) => !v)}
+                        tabIndex={-1}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff size={14} />
+                        ) : (
+                          <Eye size={14} />
+                        )}
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
 
               <button

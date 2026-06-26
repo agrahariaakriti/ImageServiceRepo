@@ -7,6 +7,7 @@ import {
 
 import { User } from "../Models/user.model.js";
 import jwt from "jsonwebtoken";
+import { log } from "node:console";
 
 const generateaccesstoken = async (user) => {
   const accesstoken = jwt.sign(
@@ -96,9 +97,12 @@ export const loginUserService = async (userData) => {
 
   if (!user) {
     console.log("Inside the service33333333", userData);
+    console.log("Htyyy data is .......", user);
 
     const error = new Error("Invalid Email or Password");
     error.statusCode = 400;
+    console.log("Jijsdjh....", error);
+
     throw error;
   }
   console.log("Inside the service44444444", userData);

@@ -7,8 +7,8 @@ export const imageratelimiter = async (req, res, next) => {
     if (!userId) {
       return res.status(402).json({ msg: "Unauthorized" });
     }
-    const userId = userId.toString();
-    const key = `imagecode:${userId}:${imagecode}`;
+    const userIdstr = userId.toString();
+    const key = `imagecode:${userIdstr}:${imagecode}`;
 
     const imageReq = await redis.incr(key);
     if (imageReq == 1) {

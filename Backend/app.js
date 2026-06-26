@@ -24,7 +24,7 @@ app.use(userRateLimiterReq);
 app.use((req, res, next) => {
   console.log("Hello i the middleware");
   next();
-});  
+});
 app.use("/api/v1/users", userroute);
 app.use("/api/v1/image", imageroute);
 

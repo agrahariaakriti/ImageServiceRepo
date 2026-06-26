@@ -168,7 +168,7 @@ export const getallimageservice = async (req) => {
     const error = new Error(
       "Can not get the image. Please try after sometime ",
     );
-    
+
     error.statuscode = 402;
     throw error;
   }
@@ -180,6 +180,7 @@ export const getallimageservice = async (req) => {
 
 export const removeimageservice = async (imageCode) => {
   const image = await Imagedb.findOne({ generatedCode: imageCode });
+  console.log("image data is ....", image);
 
   if (!image) {
     throw new Error("Image not found");
@@ -188,10 +189,20 @@ export const removeimageservice = async (imageCode) => {
   // deleting image from cloudinary
   const cloudinaryRes = await deleteFromCloudinary(image.publicId);
 
-  await Imagedb.deleteOne({ generatedCode: image.publicId });
-
   if (!cloudinaryRes || cloudinaryRes.result !== "ok") {
     throw new Error("Cloudinary deletion failed");
+  }
+
+  const result_db = await Imagedb.deleteOne({
+    generatedCode: image.generatedCode,
+  });
+  console.log("Hyyy im in the databse", result_db);
+
+  if (!result_db) {
+    const error = new Error("Cloudinary deletion failed");
+    error.statusCode = 500;
+
+    throw error;
   }
 
   await deleteimagerediscache(imageCode);

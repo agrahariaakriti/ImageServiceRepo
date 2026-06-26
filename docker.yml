@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo-data-vol:/data/db  
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8080:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_SERVER: mongodb
+
+  backend:
+    build: ./Backend
+    env_file:
+      - ./Backend/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+
+  fronetend:
+    build: ./Frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./Frontend/.env
+    depends_on:
+      - backend
+
+  python:
+    build: ./Backend/src/python.service
+    ports:
+      - 8001:8001
+
+volumes:
+  mongo-data-vol:
+    driver: local
+

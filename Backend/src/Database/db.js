@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-const DBname = "RBAC";
+// const DBname = "RBAC";
 
 export const connectDB = async () => {
-  const connection = await mongoose.connect(
-    `${process.env.mongoose_URI}/${DBname}`,
-  );
+  // console.log(`file is ,${process.env.mongoose_URI}/${DBname}`);
+
+  const connection = await mongoose.connect(`${process.env.mongoose_URI}`);
   console.log(`MongoDB connected: ${connection.connection.host}`);
 };

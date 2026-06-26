@@ -11,10 +11,6 @@ import {
 } from "../Controllers/image.controller.js";
 export const imageroute = Router();
 
-imageroute.use((req, res, next) => {
-  console.log("AGRAHARI AAKRITI .....Hyy in the image route middleware");
-  next();
-});
 imageroute
   .route("/upload")
   .post(authmiddleware, upload.single("file"), uploadimagecontroller);

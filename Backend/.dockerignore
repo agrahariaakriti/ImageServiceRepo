@@ -1,0 +1,33 @@
+# dependencies
+node_modules
+
+# environment variables (VERY IMPORTANT)
+.env
+.env.local
+.env.development
+.env.production
+
+# logs
+npm-debug.log
+yarn-error.log
+*.log
+
+# git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (optional but common)
+Dockerfile
+docker-compose.yml
+
+# tests (optional)
+tests
+coverage
+
+# build outputs (if any)
+dist
+build

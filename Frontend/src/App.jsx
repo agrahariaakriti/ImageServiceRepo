@@ -17,8 +17,8 @@ function App() {
   useEffect(() => {
     const refreshUser = async () => {
       try {
-        const res = await api.get("/users/refresh");
         console.log("mncvfdvsdvdgfwqf.....", res.data.user);
+        const res = await api.get("/users/refresh");
 
         setUser(res.data);
       } catch (error) {
