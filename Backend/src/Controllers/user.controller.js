@@ -34,11 +34,10 @@ export const signincontroller = async (req, res) => {
     console.log("In side controllrer login");
     const options = {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
     };
-
     const loginUser = await loginUserService(userData);
     console.log("In side controllrer login", loginUser.accessToken);
     return res
@@ -60,9 +59,9 @@ export const logoutcontroller = async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
     };
     return res
       .status(200)
