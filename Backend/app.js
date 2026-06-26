@@ -9,7 +9,10 @@ import cookieParser from "cookie-parser";
 import { getimagecontroller } from "./src/Controllers/image.controller.js";
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://image-service-frontend.netlify.app/",
+    ],
     credentials: true,
     // methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     // preflightContinue: false,
