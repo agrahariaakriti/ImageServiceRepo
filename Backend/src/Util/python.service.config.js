@@ -9,7 +9,8 @@ export const processImgae = async (imageurl, changingparameter) => {
 
     const responce = await axios.post(
       // "http://127.0.0.1:8000/transform",
-      "https://image-python-service.onrender.com",
+      "https://image-python-service.onrender.com/transform",
+      // "https://image-python-service.onrender.com",
       // "http://python:8001/transform",
       {
         imageurl: imageurl,

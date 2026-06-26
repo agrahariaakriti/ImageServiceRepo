@@ -34,9 +34,9 @@ export const signincontroller = async (req, res) => {
     console.log("In side controllrer login");
     const options = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/",
+      secure: true, // production mein hamesha true (HTTPS hai Render/Netlify pe)
+      sameSite: "none", // cross-domain allow karne ke liye zaroori
+      maxAge: 24 * 60 * 60 * 1000,
     };
     const loginUser = await loginUserService(userData);
     console.log("In side controllrer login", loginUser.accessToken);
@@ -59,9 +59,9 @@ export const logoutcontroller = async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/",
+      secure: true, // production mein hamesha true (HTTPS hai Render/Netlify pe)
+      sameSite: "none", // cross-domain allow karne ke liye zaroori
+      maxAge: 24 * 60 * 60 * 1000,
     };
     return res
       .status(200)
