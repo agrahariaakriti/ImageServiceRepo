@@ -34,8 +34,8 @@ export const signincontroller = async (req, res) => {
     console.log("In side controllrer login");
     const options = {
       httpOnly: true,
-      secure: true, // production mein hamesha true (HTTPS hai Render/Netlify pe)
-      sameSite: "none", // cross-domain allow karne ke liye zaroori
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     };
     const loginUser = await loginUserService(userData);
@@ -59,8 +59,8 @@ export const logoutcontroller = async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: true, // production mein hamesha true (HTTPS hai Render/Netlify pe)
-      sameSite: "none", // cross-domain allow karne ke liye zaroori
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     };
     return res
@@ -81,8 +81,8 @@ export const refreshTokenGeneratorcontroller = async (req, res) => {
     const response = await refreshTokenGeneratorservice(req);
     const options = {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     };
     return res
