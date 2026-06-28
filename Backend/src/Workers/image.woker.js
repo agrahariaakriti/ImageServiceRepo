@@ -7,10 +7,8 @@ export const workerStratengine = () => {
     "image-processing",
     async (job) => {
       try {
-        console.log("hyyy in the job worker im ");
 
         const res = await transformgetimageservice(job.data);
-        console.log("HARSHHHHHHH      hyyy in the job worker im res ", res);
         return res;
       } catch (error) {
         console.error("WORKER ERROR =>", error);
