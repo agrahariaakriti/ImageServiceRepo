@@ -7,7 +7,6 @@ import {
 
 import { User } from "../Models/user.model.js";
 import jwt from "jsonwebtoken";
-import { log } from "node:console";
 
 const generateaccesstoken = async (user) => {
   const accesstoken = jwt.sign(
@@ -93,25 +92,18 @@ export const loginUserService = async (userData) => {
   }
 
   const user = await User.findOne({ email: userData.email });
-  console.log("Inside the service2222222222", userData);
-
+ 
   if (!user) {
-    console.log("Inside the service33333333", userData);
-    console.log("Htyyy data is .......", user);
-
     const error = new Error("Invalid Email or Password");
     error.statusCode = 400;
-    console.log("Jijsdjh....", error);
 
     throw error;
   }
-  console.log("Inside the service44444444", userData);
 
   const isPasswordCorrect = await bcrypt.compare(
     userData.password,
     user.password,
   );
-  console.log("Inside the service555555", userData);
 
   if (!isPasswordCorrect) {
     const error = new Error("Invalid password");
@@ -122,7 +114,6 @@ export const loginUserService = async (userData) => {
   const refreshToken = await generaterefreshtoken(user);
   user.refreshToken = refreshToken;
   await user.save();
-  console.log("Inside the service666666666666", userData);
 
   return {
     accessToken,
