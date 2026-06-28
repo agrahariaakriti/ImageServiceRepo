@@ -145,21 +145,6 @@ FRONTEND_URL=http://localhost:5173
 imageurl=http://localhost:5000/fetch
 ```
 
----
 
-## 🔮 What's next
-
-- Pagination for large image collections
-- Client-side image compression before upload
-- Admin dashboard for usage/storage insights
-- Queue-based retry dashboard for failed transform jobs
-
----
-
-## 📄 License
-
-MIT
-
----
 
 Built solo, end-to-end — frontend, backend, microservice, infra, and deployment.
