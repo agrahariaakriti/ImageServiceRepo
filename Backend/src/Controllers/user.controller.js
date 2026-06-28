@@ -25,13 +25,10 @@ export const signupcontroller = async (req, res) => {
 
 export const signincontroller = async (req, res) => {
   try {
-    console.log("In side controllrer login", req.body);
-
     const userData = req.body;
     if (!userData.email || !userData.password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    console.log("In side controllrer login");
    const options = {
   httpOnly: true,
   secure: true,
@@ -52,8 +49,6 @@ export const signincontroller = async (req, res) => {
 
 export const logoutcontroller = async (req, res) => {
   try {
-    console.log("hyyy aakriti kaise ho ....");
-
     const userId = req.userId;
     await logoutUserService(userId);
 
@@ -75,8 +70,6 @@ const options = {
 export const refreshTokenGeneratorcontroller = async (req, res) => {
   //   const user = req.cookie.refreshToken;
   try {
-    console.log("qwertyuioplkjhgfdsazxcvbnm,.......");
-
     const response = await refreshTokenGeneratorservice(req);
 const options = {
   httpOnly: true,
