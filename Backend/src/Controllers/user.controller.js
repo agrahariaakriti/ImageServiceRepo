@@ -32,12 +32,12 @@ export const signincontroller = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
     console.log("In side controllrer login");
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    };
+   const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 24 * 60 * 60 * 1000,
+};
     const loginUser = await loginUserService(userData);
     console.log("In side controllrer login", loginUser.accessToken);
     return res
@@ -57,13 +57,12 @@ export const logoutcontroller = async (req, res) => {
     const userId = req.userId;
     await logoutUserService(userId);
 
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    };
-    return res
+const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 24 * 60 * 60 * 1000,
+};    return res
       .status(200)
       .clearCookie("accessToken", options)
       .clearCookie("refreshToken", options)
@@ -79,13 +78,12 @@ export const refreshTokenGeneratorcontroller = async (req, res) => {
     console.log("qwertyuioplkjhgfdsazxcvbnm,.......");
 
     const response = await refreshTokenGeneratorservice(req);
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    };
-    return res
+const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 24 * 60 * 60 * 1000,
+};    return res
       .status(200)
       .cookie("accessToken", response.accessToken, options)
       .cookie("refreshToken", response.refreshToken, options)
