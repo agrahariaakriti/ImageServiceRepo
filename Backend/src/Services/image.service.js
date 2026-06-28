@@ -115,8 +115,6 @@ export const transformgetimageservice = async (data) => {
       imageInfo.originalUrl,
       transformingparameter,
     );
-    console.log("Hyy res from python", responce);
-
     if (!responce || responce.length === 0) {
       throw new Error("Invalid image from Python");
     }
@@ -130,7 +128,6 @@ export const transformgetimageservice = async (data) => {
       error.statusCode = 500;
       throw error;
     }
-    console.log("Hyy res from cloudinary", cloudinaryRes);
 
     const newimage = await Imagedb.create({
       originalUrl: cloudinaryRes.secure_url,
@@ -146,7 +143,6 @@ export const transformgetimageservice = async (data) => {
       bytes: cloudinaryRes.bytes,
     });
 
-    console.log("hyyy thi sis the transomr image res", newimage);
 
     return {
       url: generatedimageUrl,
@@ -163,7 +159,6 @@ export const transformgetimageservice = async (data) => {
 
 export const getallimageservice = async (req) => {
   const userId = req.userId;
-  console.log("hyy user ID IS HERE ....", userId);
   if (!userId) {
     const error = new Error(
       "Can not get the image. Please try after sometime ",
@@ -174,14 +169,11 @@ export const getallimageservice = async (req) => {
   }
   const img_arr = await Imagedb.find({ userId }).sort({ createdAt: -1 });
 
-  console.log("hyy image ARRAY IS HERE ....", img_arr);
-
   return img_arr;
 };
 
 export const removeimageservice = async (imageCode) => {
   const image = await Imagedb.findOne({ generatedCode: imageCode });
-  console.log("image data is ....", image);
 
   if (!image) {
     throw new Error("Image not found");
@@ -197,8 +189,7 @@ export const removeimageservice = async (imageCode) => {
   const result_db = await Imagedb.deleteOne({
     generatedCode: image.generatedCode,
   });
-  console.log("Hyyy im in the databse", result_db);
-
+ 
   if (!result_db) {
     const error = new Error("Cloudinary deletion failed");
     error.statusCode = 500;
