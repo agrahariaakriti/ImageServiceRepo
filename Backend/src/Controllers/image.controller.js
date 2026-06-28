@@ -44,7 +44,6 @@ export const gettransformimagecontroller = async (req, res) => {
 };
 
 export const transformimagepostcontroller = async (req, res) => {
-  console.log("Hyy in the transform image errr");
 
   const data = {
     userId: req.userId,
@@ -62,8 +61,6 @@ export const transformimagepostcontroller = async (req, res) => {
 
 export const getJobStatusController = async (req, res) => {
   try {
-    console.log("hyy oin the controller function ....", req.params.jobId);
-
     const jobId = req.params.jobId;
     const job = await imageTransformQueue.getJob(jobId);
     if (!job) {
@@ -71,9 +68,6 @@ export const getJobStatusController = async (req, res) => {
         msg: "Job not found",
       });
     }
-
-    console.log("HYY RES FROM THE WORKER END ", job.returnvalue);
-
     const state = await job.getState();
     if (state === "completed") {
       const result = job.returnvalue;
@@ -103,7 +97,7 @@ export const getJobStatusController = async (req, res) => {
 export const getallimagecontroller = async (req, res) => {
   try {
     const get_image_arr = await getallimageservice(req);
-    console.log("hyy image ARRAY IS HERE CONTROLLER ....", get_image_arr);
+  
     return res.status(200).json({ msg: get_image_arr });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ message: error.message });
@@ -113,14 +107,10 @@ export const getallimagecontroller = async (req, res) => {
 export const removeimagecontroller = async (req, res) => {
   try {
     const imageCode = req.params.jobId;
-    console.log("rajaaaaa....", imageCode);
-
     const responce = await removeimageservice(imageCode);
 
     return res.status(200).json({ msg: "DELETD SUCCESSFULY 🎉" });
   } catch (error) {
-    console.log("hdscsbc....", error);
-
     return res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
