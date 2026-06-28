@@ -172,7 +172,8 @@ export const getallimageservice = async (req) => {
     error.statuscode = 402;
     throw error;
   }
-  const img_arr = await Imagedb.find({ userId });
+  const img_arr = await Imagedb.find({ userId }).sort({ createdAt: -1 });
+
   console.log("hyy image ARRAY IS HERE ....", img_arr);
 
   return img_arr;
